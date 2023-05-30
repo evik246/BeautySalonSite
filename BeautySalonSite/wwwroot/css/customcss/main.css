@@ -1,0 +1,98 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500&family=Manrope:wght@400;600;700&display=swap');
+
+* {
+    font-family: 'Manrope', sans-serif;
+}
+
+body {
+    padding-top: 80px;
+}
+
+.header-block {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px 3% 20px 3%;
+    max-width: 13in;
+}
+
+.header-shadow {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+}
+
+.logo-block img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+}
+
+.nav-list {
+    list-style: none;
+    margin-left: 30px;
+}
+
+.nav-list li {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.nav-list .link-style {
+    padding-bottom: 5px;
+    text-transform: capitalize;
+}
+
+.center-block {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 30px 3%;
+    max-width: 13in;
+    min-width: 4in;
+}
+
+img {
+    width: 100%;
+}
+
+section {
+    padding-top: 90px;
+}
+
+/* HERO */
+#hero {
+    background: linear-gradient(#8e00ff12, #6a0088e9), url(../../img/main_pic2.png);
+    min-height: 78vh;
+    background-position: center;
+    background-size: cover;
+    padding-bottom: 90px;
+}
+
+/* Button */
+.btn-warning:hover {
+    background-image: linear-gradient(#FFC108, #ffe764ff);
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+}
+
+/* Scrollable horizaontal */
+div.scroll-container {
+    overflow: auto;
+    white-space: nowrap;
+}
+
+div.scroll-container img {
+    padding: 1px;
+    width: 30vh;
+    height: 30vh;
+    object-fit: cover;
+}
+
+@media (min-width: 320px) and (max-width: 480px) {
+    .center-block {
+        margin-left: auto;
+        margin-right: auto;
+        min-width: 0;
+        width: 85%;
+    }
+}

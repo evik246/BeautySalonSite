@@ -1,4 +1,8 @@
-﻿<nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm p-1 mb-2">
+﻿@using BeautySalonSite.Models;
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm p-1 mb-2">
     <div class="container">
 
         <a class="navbar-brand" href="#">
@@ -12,7 +16,7 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mb-0 mb-lg-0 ms-auto">
                 <li class="nav-item">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <NavLink class="nav-link" href="@GetMainPageLink()" Match="NavLinkMatch.All">
                         Главная
                     </NavLink>
                 </li>
@@ -22,10 +26,56 @@
                     </NavLink>
                 </li>
             </ul>
-            <div class="mb-0 mb-lg-0 ms-lg-4 d-grid gap-2 d-md-flex justify-content-md-end">
+            @if (salons is not null && salons.Any())
+            {
+                <div class="mx-4">
+                    <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
+                        <option value="" selected hidden>Выберите салон</option>
+                        @foreach (var salon in salons!)
+                        {
+                            <option value="@salon.Id">@salon.ToString()</option>
+                        }
+                    </InputSelect>
+                </div>
+            }
+            <div class="mb-0 mb-lg-0 ms-lg-2 d-grid gap-2 d-md-flex justify-content-md-end">
                 <button type="button" class="btn btn-warning">Войти</button>
                 <button type="button" class="btn btn-warning">Регистрация</button>
             </div>
         </div>
     </div>
 </nav>
+
+@code {
+    private SalonWithOnlyAddress[]? salons;
+    private string salonId = string.Empty;
+    public string SalonId 
+    { 
+        get { return salonId; } 
+        set { salonId = value; UpdateSalonId(); }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        salons = await Http.GetFromJsonAsync<SalonWithOnlyAddress[]>("salon");
+    }
+
+    private string GetMainPageLink()
+    {
+        if (string.IsNullOrEmpty(SalonId))
+        {
+            return "";
+        }
+        return "salon/" + SalonId;
+    }
+
+    private void UpdateSalonId()
+    {
+        var mainPageLink = GetMainPageLink();
+        if (Navigation.Uri.Equals(Navigation.BaseUri + mainPageLink) ||
+        Navigation.Uri.Equals(Navigation.BaseUri))
+        {
+            Navigation.NavigateTo(mainPageLink, forceLoad: false);
+        }
+    }
+}

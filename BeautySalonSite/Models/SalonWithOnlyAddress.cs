@@ -1,0 +1,16 @@
+﻿namespace BeautySalonSite.Models
+{
+    public class SalonWithOnlyAddress
+    {
+        public int Id { get; set; }
+
+        public string Address { get; set; } = string.Empty;
+
+        public City City { get; set; } = new();
+
+        public override string ToString()
+        {
+            return City.Name + ", " + Address;
+        }
+    }
+}

@@ -1,6 +1,7 @@
 ﻿@using BeautySalonSite.Models;
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject SalonStateContainer salonStateContainer;
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm p-1 mb-2">
     <div class="container">
@@ -30,10 +31,20 @@
             {
                 <div class="mx-4">
                     <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
-                        <option value="" selected hidden>Выберите салон</option>
+                        @if (string.IsNullOrEmpty(SalonId))
+                        {
+                            <option value="" selected hidden>Выберите салон</option>
+                        }
                         @foreach (var salon in salons!)
                         {
-                            <option value="@salon.Id">@salon.ToString()</option>
+                            if (!string.IsNullOrEmpty(SalonId) && salon.Id.Equals(SalonId))
+                            {
+                                <option selected value="@salon.Id">@salon.ToString()</option>
+                            }
+                            else
+                            {
+                                <option value="@salon.Id">@salon.ToString()</option>
+                            }
                         }
                     </InputSelect>
                 </div>
@@ -58,6 +69,8 @@
     protected override async Task OnInitializedAsync()
     {
         salons = await Http.GetFromJsonAsync<SalonWithOnlyAddress[]>("salon");
+        SalonId = salonStateContainer.SalonId == 0 ? 
+            string.Empty : salonStateContainer.SalonId.ToString();
     }
 
     private string GetMainPageLink()

@@ -26,7 +26,7 @@ namespace BeautySalonSite.AuthProviders
 
             if (!string.IsNullOrEmpty(token) )
             {
-                identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt");
+                identity = new ClaimsIdentity(ParseClaimsFromJwt(token), "jwt", "nameid", "role");
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Replace("\"", ""));
             }
 

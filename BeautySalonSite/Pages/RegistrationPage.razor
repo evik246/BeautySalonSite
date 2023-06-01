@@ -9,38 +9,38 @@
     <div class="container">
         <div class="row">
             <div class="h-100 d-flex align-items-center justify-content-center">
-                <EditForm class="form-floating mb-4" Model="@client" OnValidSubmit="@Registration">
+                <EditForm class="form-floating mb-4" Model="@Client" OnValidSubmit="@Registration">
                     <DataAnnotationsValidator />
                     <h2 class="text-center my-5">Создание учетной записи</h2>
                     
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Name">Имя*</label>
-                        <InputText id="Name" class="form-control" @bind-Value=client.Name />
-                        <ValidationMessage For="@(() => client.Name)" />
+                        <InputText id="Name" class="form-control" @bind-Value=Client.Name />
+                        <ValidationMessage For="@(() => Client.Name)" />
                     </div>
 
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Birthday">День рождения</label>
-                        <InputDate id="Birthday" class="form-control" @bind-Value=client.Birthday />
-                        <ValidationMessage For="@(() => client.Birthday)" />
+                        <InputDate id="Birthday" class="form-control" @bind-Value=Client.Birthday />
+                        <ValidationMessage For="@(() => Client.Birthday)" />
                     </div>
 
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Phone">Номер телефона*</label>
-                        <InputText id="Phone" class="form-control" @bind-Value=client.Phone />
-                        <ValidationMessage For="@(() => client.Phone)" />
+                        <InputText id="Phone" class="form-control" @bind-Value=Client.Phone />
+                        <ValidationMessage For="@(() => Client.Phone)" />
                     </div>
 
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Email">Почта*</label>
-                        <InputText id="Email" class="form-control" @bind-Value=client.Email />
-                        <ValidationMessage For="@(() => client.Email)" />
+                        <InputText id="Email" class="form-control" @bind-Value=Client.Email />
+                        <ValidationMessage For="@(() => Client.Email)" />
                     </div>
 
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Password">Пароль*</label>
-                        <InputText type="password" id="Password" class="form-control" @bind-Value=client.Password />
-                        <ValidationMessage For="@(() => client.Password)" />
+                        <InputText type="password" id="Password" class="form-control" @bind-Value=Client.Password />
+                        <ValidationMessage For="@(() => Client.Password)" />
                     </div>
 
                     <button type="submit" class="btn btn-warning col-12 mt-5 mb-3">Регистрироваться</button>
@@ -52,10 +52,10 @@
 </section>
 
 @code {
-    public ClientRegistration client { get; set; } = new();
+    public ClientRegistration Client { get; set; } = new();
 
     protected async Task Registration()
     {
-        HttpResponseMessage response = await Http.PostAsJsonAsync<ClientRegistration>("customer/register", client);
+        HttpResponseMessage response = await Http.PostAsJsonAsync<ClientRegistration>("customer/register", Client);
     }
 }

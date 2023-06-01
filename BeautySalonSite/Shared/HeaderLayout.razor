@@ -1,7 +1,9 @@
 ﻿@using BeautySalonSite.Models;
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject SalonStateContainer salonStateContainer;
+@inject SalonStateContainer SalonStateContainer
+@inject ILocalStorageService LocalStorage
+@inject AuthenticationStateProvider AuthStateProvider
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm p-1 mb-2">
     <div class="container">
@@ -50,7 +52,15 @@
                 </div>
             }
             <div class="mb-0 mb-lg-0 ms-lg-2 d-grid gap-2 d-md-flex justify-content-md-end">
-                <a type="button" class="btn btn-warning" href="login">Войти</a>
+                <AuthorizeView>
+                    <Authorized>
+                        <a type="button" class="btn btn-warning" href="client/account">Личный кабинет</a>
+                        <button @onclick="Logout" type="button" class="btn btn-warning">Выйти</button>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a type="button" class="btn btn-warning" href="login">Войти</a>
+                    </NotAuthorized>
+                </AuthorizeView>
                 <a type="button" class="btn btn-warning" href="registration">Регистрация</a>
             </div>
         </div>
@@ -69,8 +79,8 @@
     protected override async Task OnInitializedAsync()
     {
         salons = await Http.GetFromJsonAsync<SalonWithOnlyAddress[]>("salon");
-        SalonId = salonStateContainer.SalonId == 0 ? 
-            string.Empty : salonStateContainer.SalonId.ToString();
+        SalonId = SalonStateContainer.SalonId == 0 ?
+            string.Empty : SalonStateContainer.SalonId.ToString();
     }
 
     private string GetMainPageLink()
@@ -90,5 +100,12 @@
         {
             Navigation.NavigateTo(mainPageLink, forceLoad: false);
         }
+    }
+
+    private async Task Logout()
+    {
+        await LocalStorage.RemoveItemAsync("token");
+        await AuthStateProvider.GetAuthenticationStateAsync();
+        Navigation.NavigateTo(GetMainPageLink());
     }
 }

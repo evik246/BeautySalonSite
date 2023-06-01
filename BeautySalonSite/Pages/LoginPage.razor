@@ -2,6 +2,9 @@
 
 @using BeautySalonSite.Models;
 @inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILocalStorageService LocalStorage
+@inject NavigationManager Navigation
 
 <PageTitle>Вход в учетную запись</PageTitle>
 
@@ -9,18 +12,24 @@
     <div class="container">
         <div class="row">
             <div class="h-100 d-flex align-items-center justify-content-center">
-                <EditForm class="form-floating mb-4" Model="@user" OnValidSubmit="@Login">
+                <EditForm class="form-floating mb-4" Model="@User" OnValidSubmit="@Login">
                     <DataAnnotationsValidator />
                     <h2 class="text-center my-5">Вход в учетную запись</h2>
+                    @if (unauthorized)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            Некорректный пароль или адрес почты
+                        </div>
+                    }
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Email">Почта</label>
-                        <InputText id="Email" class="form-control" @bind-Value=user.Email />
-                        <ValidationMessage For="@(() => user.Email)" />
+                        <InputText id="Email" class="form-control" @bind-Value=User.Email />
+                        <ValidationMessage For="@(() => User.Email)" />
                     </div>
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Password">Пароль</label>
-                        <InputText type="password" id="Password" class="form-control" @bind-Value=user.Password />
-                        <ValidationMessage For="@(() => user.Password)" />
+                        <InputText type="password" id="Password" class="form-control" @bind-Value=User.Password />
+                        <ValidationMessage For="@(() => User.Password)" />
                     </div>
                     <button type="submit" class="btn btn-warning col-12 mt-5 mb-3">Войти</button>
                     <p class="text-center my-2">или <a href="registration" class="link-yellow">регистрация</a></p>
@@ -31,13 +40,23 @@
 </section>
 
 @code {
-    public UserLogin user { get; set; } = new();
+    public UserLogin User { get; set; } = new();
+
+    private string token = string.Empty;
+    private bool unauthorized;
 
     protected async Task Login()
     {
-        HttpResponseMessage response = await Http.PostAsJsonAsync<UserLogin>("auth/login", user);
-        string token = await response.Content.ReadAsStringAsync();
+        HttpResponseMessage response = await Http.PostAsJsonAsync<UserLogin>("auth/login", User);
 
+        if (response.IsSuccessStatusCode)
+        {
+            token = await response.Content.ReadAsStringAsync();
+            await LocalStorage.SetItemAsync("token", token);
+            await AuthStateProvider.GetAuthenticationStateAsync();
+            Navigation.NavigateTo("client/account", forceLoad: false);
+        }
 
+        unauthorized = response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
     }
 }

@@ -1,20 +1,21 @@
-﻿<CascadingAuthenticationState>
+﻿@using BeautySalonSite.Pages
+
+<CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(BaseLayout)">
                 <NotAuthorized>
-                    Sorry, but you're not allowed to see this.
+                    <NotAuthorizedPage></NotAuthorizedPage>
                 </NotAuthorized>
                 <Authorizing>
-                    PLease wait, we are authorizing the user.
+                    <AuthorizingPage></AuthorizingPage>
                 </Authorizing>
             </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <PageTitle>Not found</PageTitle>
             <LayoutView Layout="@typeof(BaseLayout)">
-                <p role="alert">Sorry, there's nothing at this address.</p>
+                <NotFoundPage></NotFoundPage>
             </LayoutView>
         </NotFound>
     </Router>

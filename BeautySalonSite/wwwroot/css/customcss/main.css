@@ -6,6 +6,7 @@
 
 body {
     padding-top: 80px;
+    height: 100%;
 }
 
 .header-block {
@@ -86,6 +87,32 @@ div.scroll-container img {
     width: 30vh;
     height: 30vh;
     object-fit: cover;
+}
+
+.link-yellow {
+    color: black;
+    text-decoration: none;
+}
+
+.link-yellow:link {
+    color: black;
+    text-decoration: none;
+}
+
+.link-yellow:visited {
+    color: black;
+    text-decoration: none;
+}
+
+.link-yellow:hover {
+    text-decoration: underline;
+    color: #e38b00;
+    text-decoration-color: #e38b00;
+}
+
+.link-yellow {
+    color: black;
+    text-decoration: none;
 }
 
 @media (min-width: 320px) and (max-width: 480px) {

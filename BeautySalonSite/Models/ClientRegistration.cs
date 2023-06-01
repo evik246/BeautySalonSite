@@ -21,7 +21,6 @@ namespace BeautySalonSite.Models
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Укажите номер телефона")]
-        [Phone(ErrorMessage = "Номер телефона недействителен")]
         [RegularExpression(@"\+[0-9]{12}", ErrorMessage = "Номер телефона недействителен")]
         public string Phone { get; set; } = string.Empty;
     }

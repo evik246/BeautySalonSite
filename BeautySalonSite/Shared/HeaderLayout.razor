@@ -1,7 +1,6 @@
 ﻿@using BeautySalonSite.Models;
 @inject HttpClient Http
 @inject NavigationManager Navigation
-@inject SalonStateContainer SalonStateContainer
 @inject ILocalStorageService LocalStorage
 @inject AuthenticationStateProvider AuthStateProvider
 
@@ -79,8 +78,12 @@
     protected override async Task OnInitializedAsync()
     {
         salons = await Http.GetFromJsonAsync<SalonWithOnlyAddress[]>("salon");
-        SalonId = SalonStateContainer.SalonId == 0 ?
-            string.Empty : SalonStateContainer.SalonId.ToString();
+
+        salonId = await LocalStorage.GetItemAsStringAsync("salonid");
+        if (salonId is not null)
+        {
+            salonId = SalonId.Replace("\"", "");
+        }
     }
 
     private string GetMainPageLink()
@@ -92,13 +95,22 @@
         return "salon/" + SalonId;
     }
 
-    private void UpdateSalonId()
+    private async void UpdateSalonId()
     {
+        if (!int.TryParse(SalonId, out int id))
+        {
+            await LocalStorage.RemoveItemAsync("salonid");
+        }
+        else
+        {
+            await LocalStorage.SetItemAsync("salonid", SalonId);
+        }
+
         var mainPageLink = GetMainPageLink();
         if (Navigation.Uri.Equals(Navigation.BaseUri + mainPageLink) ||
-        Navigation.Uri.Equals(Navigation.BaseUri))
+            Navigation.Uri.Equals(Navigation.BaseUri))
         {
-            Navigation.NavigateTo(mainPageLink, forceLoad: false);
+            Navigation.NavigateTo(mainPageLink);
         }
     }
 

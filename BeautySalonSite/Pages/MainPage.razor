@@ -1,10 +1,8 @@
 ﻿@page "/"
-@page "/salon/{SalonId}"
+@page "/salon/{SalonId:int}"
 
-@using BeautySalonSite.Models;
+@using BeautySalonSite.Models
 @inject HttpClient Http
-@inject SalonStateContainer salonStateContainer;
-@implements IDisposable
 
 <PageTitle>Главная</PageTitle>
 
@@ -81,14 +79,13 @@
 
 @code {
     [Parameter]
-    public string SalonId { get; set; } = string.Empty;
+    public int SalonId { get; set; }
 
     private Category[]? categories;
     public string CategoryId { get; set; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        salonStateContainer.OnStateChange += StateHasChanged;
         await GetCategories();
     }
 
@@ -99,15 +96,6 @@
 
     private async Task GetCategories()
     {
-        if (int.TryParse(SalonId, out int salonId))
-        {
-            salonStateContainer.SetValue(salonId);
-            categories = await Http.GetFromJsonAsync<Category[]>($"category/salon/{salonId}");
-        }
-    }
-
-    public void Dispose()
-    {
-        salonStateContainer.OnStateChange -= StateHasChanged;
+        categories = await Http.GetFromJsonAsync<Category[]>($"category/salon/{SalonId}");
     }
 }

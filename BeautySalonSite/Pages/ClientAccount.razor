@@ -21,20 +21,22 @@
         <div class="col-md-8 order-md-2">
             <div class="block m-1 p-4">
                 
-                <h3 class="mb-4">Личная информация</h3>
-                <p><strong>Имя:</strong> @customer?.Name</p>
-                @if (customer?.Birthday is null)
-                {
-                    <p><strong>Дата рождения:</strong> не указана</p>
-                }
-                else
-                {
-                    <p><strong>Дата рождения:</strong> @customer?.Birthday?.ToString("dd.MM.yyyy")</p>
-                }
-                <p><strong>Email:</strong> @customer?.Email</p>
-                <p><strong>Телефон:</strong> @customer?.Phone</p>
+                <h4 class="mb-4">Личная информация</h4>
+                <div class="mt-3">
+                    <p><strong>Имя:</strong> @customer?.Name</p>
+                    @if (customer?.Birthday is null)
+                    {
+                        <p><strong>Дата рождения:</strong> не указана</p>
+                    }
+                    else
+                    {
+                        <p><strong>Дата рождения:</strong> @customer?.Birthday?.ToString("dd.MM.yyyy")</p>
+                    }
+                    <p><strong>Email:</strong> @customer?.Email</p>
+                    <p><strong>Телефон:</strong> @customer?.Phone</p>
+                </div>
                 <div class="d-flex justify-content-end">
-                    <a href="" class="btn btn-warning mt-3">Изменить</a>
+                    <a href="" class="btn btn-warning mt-2">Изменить</a>
                 </div>
 
             </div>

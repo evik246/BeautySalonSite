@@ -1,6 +1,8 @@
 ﻿@page "/client/account"
 
+@using BeautySalonSite.Models;
 @using Microsoft.AspNetCore.Authorization;
+@inject HttpClient Http
 
 @attribute [Authorize(Roles = "Client")]
 
@@ -18,12 +20,38 @@
         </div>
         <div class="col-md-8 order-md-2">
             <div class="block m-1 p-4">
-                Личная информация
+                
+                <h3 class="mb-4">Личная информация</h3>
+                <p><strong>Имя:</strong> @customer?.Name</p>
+                @if (customer?.Birthday is null)
+                {
+                    <p><strong>Дата рождения:</strong> не указана</p>
+                }
+                else
+                {
+                    <p><strong>Дата рождения:</strong> @customer?.Birthday?.ToString("dd.MM.yyyy")</p>
+                }
+                <p><strong>Email:</strong> @customer?.Email</p>
+                <p><strong>Телефон:</strong> @customer?.Phone</p>
+                <div class="d-flex justify-content-end">
+                    <a href="" class="btn btn-warning mt-3">Изменить</a>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
 
 @code {
+    private Customer? customer;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCustomer();
+    }
+
+    private async Task GetCustomer()
+    {
+        customer = await Http.GetFromJsonAsync<Customer>("customer/account");
+    }
 }

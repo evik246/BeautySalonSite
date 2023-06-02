@@ -2,6 +2,7 @@
 
 @using BeautySalonSite.Models;
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <PageTitle>Регистрация</PageTitle>
 
@@ -13,6 +14,13 @@
                     <DataAnnotationsValidator />
                     <h2 class="text-center mb-5">Создание учетной записи</h2>
                     
+                    @if (error is not null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @error.Message
+                        </div>
+                    }
+
                     <div class="form-group mb-3">
                         <label class="col-form-label" for="Name">Имя*</label>
                         <InputText id="Name" class="form-control" @bind-Value=Client.Name />
@@ -54,8 +62,30 @@
 @code {
     public ClientRegistration Client { get; set; } = new();
 
+    private Error? error;
+
     protected async Task Registration()
     {
         HttpResponseMessage response = await Http.PostAsJsonAsync<ClientRegistration>("customer/register", Client);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("login");
+        }
+
+        error = await response.Content.ReadFromJsonAsync<Error>();
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            if (error is not null && error.Message.Equals("This email is already used"))
+            {
+                error.Message = "Эта почта уже занята";
+            }
+
+            if (error is not null && error.Message.Equals("This phone number is already used"))
+            {
+                error.Message = "Этот номер телефона уже занят";
+            }
+        }
     }
 }

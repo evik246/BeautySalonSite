@@ -7,6 +7,12 @@
 body {
     padding-top: 80px;
     height: 100%;
+    background-color: #f8f9fa;
+}
+
+.block {
+    background-color: white;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
 }
 
 .header-block {

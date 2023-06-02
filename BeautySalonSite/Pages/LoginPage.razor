@@ -12,9 +12,9 @@
     <div class="container">
         <div class="row">
             <div class="h-100 d-flex align-items-center justify-content-center">
-                <EditForm class="form-floating mb-4" Model="@User" OnValidSubmit="@Login">
+                <EditForm class="block form-floating p-5 mb-4" Model="@User" OnValidSubmit="@Login">
                     <DataAnnotationsValidator />
-                    <h2 class="text-center my-5">Вход в учетную запись</h2>
+                    <h2 class="text-center mb-5">Вход в учетную запись</h2>
                     @if (unauthorized)
                     {
                         <div class="alert alert-danger" role="alert">

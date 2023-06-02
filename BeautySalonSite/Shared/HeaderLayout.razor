@@ -11,12 +11,35 @@
             <img src="img/logo.png" alt="" height="64" />
         </a>
 
+        @if (salons is not null && salons.Any())
+        {
+            <div class="m-1">
+                <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
+                    @if (string.IsNullOrEmpty(SalonId))
+                    {
+                        <option value="" selected hidden>Выберите салон</option>
+                    }
+                    @foreach (var salon in salons!)
+                    {
+                        if (!string.IsNullOrEmpty(SalonId) && salon.Id.Equals(SalonId))
+                        {
+                            <option selected value="@salon.Id">@salon.ToString()</option>
+                        }
+                        else
+                        {
+                            <option value="@salon.Id">@salon.ToString()</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+        }
+
         <button @onclick="ToggleNavMenu" class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div @onclick="ToggleNavMenu" class="@NavMenuCssClass navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mb-0 mb-lg-0 ms-auto">
+            <ul class="navbar-nav ms-auto">
                 <li class="nav-item m-1">
                     <NavLink class="nav-link" href="@GetMainPageLink()" Match="NavLinkMatch.All">
                         Главная
@@ -27,28 +50,7 @@
                         Услуги
                     </NavLink>
                 </li>
-                @if (salons is not null && salons.Any())
-                {
-                    <div class="nav-item m-1">
-                        <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
-                            @if (string.IsNullOrEmpty(SalonId))
-                            {
-                                <option value="" selected hidden>Выберите салон</option>
-                            }
-                            @foreach (var salon in salons!)
-                            {
-                                if (!string.IsNullOrEmpty(SalonId) && salon.Id.Equals(SalonId))
-                                {
-                                    <option selected value="@salon.Id">@salon.ToString()</option>
-                                }
-                                else
-                                {
-                                    <option value="@salon.Id">@salon.ToString()</option>
-                                }
-                            }
-                        </InputSelect>
-                    </div>
-                }
+                
                 <AuthorizeView>
                     <Authorized>
                         <li class="nav-item m-1">

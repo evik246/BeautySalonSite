@@ -5,6 +5,6 @@ namespace BeautySalonSite.Service.AppointmentService
 {
     public interface IAppointmentService
     {
-        Task<Result<IEnumerable<CustomerAppointment>>> GetActiveCustomerAppointments(int salonId);
+        Task<Result<IEnumerable<CustomerAppointment>>> GetActiveCustomerAppointments(int salonId, Paging paging);
     }
 }

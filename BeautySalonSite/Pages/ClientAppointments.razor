@@ -1,6 +1,7 @@
 ﻿@page "/client/account/appointment"
 
 @using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Service.AppointmentService;
 @using BeautySalonSite.Service.SalonService;
 @using Microsoft.AspNetCore.Authorization;
@@ -25,7 +26,7 @@
         <div class="col-md-8 order-md-2">
             <div class="m-1">
                 <div class="block p-4">
-                    <h3>Мои записи</h3>
+                    <h4 class="mt-2">Мои записи</h4>
                     <a href="" class="btn btn-warning mt-4">Записаться</a>
                 </div>
                 <div class="py-3 text-center mb-1 mt-4">
@@ -51,10 +52,25 @@
                             </div>
                         </div>
                     }
+
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
+                                <a class="btn-warning text-black page-link" @onclick="PreviousPage">Предыдущая</a>
+                            </li>
+                            <li class="btn-warning page-item active mx-4">
+                                <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
+                            </li>
+                            <li class="page-item @(hasNextPage ? "" : "disabled")">
+                                <a class="btn-warning text-black page-link" @onclick="NextPage">Следующая</a>
+                            </li>
+                        </ul>
+                    </nav>
+
                 }
                 else
                 {
-                    <p>У вас нет предстоящих записей.</p>
+                    <p class="text-center">У вас нет предстоящих записей.</p>
                 }
             </div>
         </div>
@@ -63,22 +79,55 @@
 
 @code {
     private CustomerAppointment[]? activeAppointments;
+    private Paging paging = new() { PageSize = 2 };
+    private bool hasNextPage;
 
     protected override async Task OnInitializedAsync()
     {
-        await GetActiveAppointments();
+        var result = await GetActiveAppointments();
+        activeAppointments = result.ToArray();
+        await HasNextPage();
     }
 
-    private async Task GetActiveAppointments()
+    private async Task<IEnumerable<CustomerAppointment>> GetActiveAppointments()
     {
         var result2 = await SalonService.GetSalonIdFromLocalStorage();
         if (result2.State == Models.Other.ResultState.Success)
         {
-            var result = await AppointmentService.GetActiveCustomerAppointments(result2.Value!);
+            var result = await AppointmentService.GetActiveCustomerAppointments(result2.Value!, paging);
             if (result.State == Models.Other.ResultState.Success)
             {
-                activeAppointments = result.Value!.ToArray();
+                return result.Value!.ToArray();
             }
         }
+        return new CustomerAppointment[0];
+    }
+
+    private async Task PreviousPage()
+    {
+        if (paging.PageNumber > 1)
+        {
+            paging.PageNumber--;
+            var result = await GetActiveAppointments();
+            activeAppointments = result.ToArray();
+        }
+        await HasNextPage();
+    }
+
+    private async Task NextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetActiveAppointments();
+        activeAppointments = result.ToArray();
+        await HasNextPage();
+    }
+
+    private async Task HasNextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetActiveAppointments();
+        paging.PageNumber--;
+
+        hasNextPage = !(result is null || !result.Any());
     }
 }

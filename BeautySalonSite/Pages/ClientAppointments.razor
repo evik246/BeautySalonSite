@@ -1,6 +1,12 @@
 ﻿@page "/client/account/appointment"
 
+@using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Service.AppointmentService;
+@using BeautySalonSite.Service.SalonService;
 @using Microsoft.AspNetCore.Authorization;
+
+@inject IAppointmentService AppointmentService
+@inject ISalonService SalonService
 
 @attribute [Authorize(Roles = "Client")]
 
@@ -17,13 +23,62 @@
             </div>
         </div>
         <div class="col-md-8 order-md-2">
-            <div class="block m-1 p-4">
-                Записи клиента
+            <div class="m-1">
+                <div class="block p-4">
+                    <h3>Мои записи</h3>
+                    <a href="" class="btn btn-warning mt-4">Записаться</a>
+                </div>
+                <div class="py-3 text-center mb-1 mt-4">
+                    <h4>Предстоящие записи</h4>
+                </div>
+                @if (activeAppointments != null && activeAppointments.Length > 0)
+                {
+                    @foreach (var appointment in activeAppointments)
+                    {
+                        <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h5 class="card-title mb-4"><b>Дата:</b> @appointment.Date.ToShortDateString()</h5>
+                                    <h5 class="card-title"><b>Время:</b> @appointment.Date.ToShortTimeString()</h5>
+                                </div>
+
+                                <p class="card-text mt-4"><b>Мастер:</b> <a class="link-yellow" href="">@($"{appointment.Master.Name} {appointment.Master.LastName}")</a></p>
+                                <p class="card-text"><b>Услуга:</b> <a class="link-yellow" href="">@appointment.Service.Name</a></p>
+                                <p class="card-text"><b>Цена:</b> @appointment.Service.Price</p>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <a href="" class="btn btn-danger mt-1">Отменить</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>У вас нет предстоящих записей.</p>
+                }
             </div>
         </div>
     </div>
 </div>
 
 @code {
+    private CustomerAppointment[]? activeAppointments;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetActiveAppointments();
+    }
+
+    private async Task GetActiveAppointments()
+    {
+        var result2 = await SalonService.GetSalonIdFromLocalStorage();
+        if (result2.State == Models.Other.ResultState.Success)
+        {
+            var result = await AppointmentService.GetActiveCustomerAppointments(result2.Value!);
+            if (result.State == Models.Other.ResultState.Success)
+            {
+                activeAppointments = result.Value!.ToArray();
+            }
+        }
+    }
 }

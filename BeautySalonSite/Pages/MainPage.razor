@@ -1,8 +1,10 @@
 ﻿@page "/"
 @page "/salon/{SalonId:int}"
 
-@using BeautySalonSite.Models
+@using BeautySalonSite.Models.CategoryModels;
+
 @inject HttpClient Http
+@inject ILocalStorageService LocalStorage
 
 <PageTitle>Главная</PageTitle>
 
@@ -86,12 +88,26 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await GetSalonIdFromStorage();
         await GetCategories();
     }
 
     protected override async Task OnParametersSetAsync()
     {
         await GetCategories();
+    }
+
+    private async Task GetSalonIdFromStorage()
+    {
+        var stringId = await LocalStorage.GetItemAsStringAsync("salonid");
+        if (stringId is not null)
+        {
+            stringId = stringId.Replace("\"", "");
+            if (int.TryParse(stringId, out int salonId))
+            {
+                SalonId = salonId;
+            }
+        }
     }
 
     private async Task GetCategories()

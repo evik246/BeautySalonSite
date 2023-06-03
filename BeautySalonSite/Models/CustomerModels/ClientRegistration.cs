@@ -1,7 +1,7 @@
 ﻿using BeautySalonSite.Attributes;
 using System.ComponentModel.DataAnnotations;
 
-namespace BeautySalonSite.Models
+namespace BeautySalonSite.Models.CustomerModels
 {
     public class ClientRegistration
     {

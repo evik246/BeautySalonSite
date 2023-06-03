@@ -1,4 +1,6 @@
-﻿namespace BeautySalonSite.Models
+﻿using BeautySalonSite.Models.CityModels;
+
+namespace BeautySalonSite.Models.SalonModels
 {
     public class SalonWithOnlyAddress
     {

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace BeautySalonSite.Models
+namespace BeautySalonSite.Models.UserModels
 {
     public class UserLogin
     {

@@ -1,6 +1,6 @@
-﻿namespace BeautySalonSite.Models
+﻿namespace BeautySalonSite.Models.CityModels
 {
-    public class Category
+    public class City
     {
         public int Id { get; set; }
 

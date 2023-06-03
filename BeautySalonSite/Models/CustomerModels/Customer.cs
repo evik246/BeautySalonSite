@@ -1,4 +1,4 @@
-﻿namespace BeautySalonSite.Models
+﻿namespace BeautySalonSite.Models.CustomerModels
 {
     public class Customer
     {

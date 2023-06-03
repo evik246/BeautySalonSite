@@ -58,7 +58,7 @@
                             <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
                                 <a class="btn-warning text-black page-link" @onclick="PreviousPage">Предыдущая</a>
                             </li>
-                            <li class="btn-warning page-item active mx-4">
+                            <li class="btn-warning page-item mx-4">
                                 <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
                             </li>
                             <li class="page-item @(hasNextPage ? "" : "disabled")">

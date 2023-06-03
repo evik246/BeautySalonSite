@@ -56,13 +56,13 @@
                     <nav>
                         <ul class="pagination justify-content-center">
                             <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
-                                <a class="btn-warning text-black page-link" @onclick="PreviousPage">Предыдущая</a>
+                                <a class="btn-warning link-dark page-link" @onclick="PreviousPage">Предыдущая</a>
                             </li>
-                            <li class="btn-warning page-item mx-4">
+                            <li class="page-item mx-4">
                                 <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
                             </li>
                             <li class="page-item @(hasNextPage ? "" : "disabled")">
-                                <a class="btn-warning text-black page-link" @onclick="NextPage">Следующая</a>
+                                <a class="btn-warning link-dark page-link" @onclick="NextPage">Следующая</a>
                             </li>
                         </ul>
                     </nav>
@@ -79,7 +79,7 @@
 
 @code {
     private CustomerAppointment[]? activeAppointments;
-    private Paging paging = new() { PageSize = 2 };
+    private Paging paging = new() { PageSize = 3 };
     private bool hasNextPage;
 
     protected override async Task OnInitializedAsync()

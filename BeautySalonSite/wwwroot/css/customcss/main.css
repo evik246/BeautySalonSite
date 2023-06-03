@@ -15,6 +15,22 @@ body {
     background: #f00 !important;
 }
 
+ul.nav li a, ul.nav li a:visited {
+    color: red !important;
+}
+
+ul.nav li a:hover, ul.nav li a:active {
+    color: black !important;
+}
+
+ul.nav li.active a {
+    color: grey !important;
+}
+
+.pagination-link:active {
+    color: black;
+}
+
 .block {
     background-color: white;
     box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;

@@ -1,4 +1,6 @@
-﻿using BeautySalonSite.Models.ExceptionModels;
+﻿using BeautySalonSite.Models.CustomerModels;
+using BeautySalonSite.Models.ErrorModels;
+using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.UserModels;
 using Blazored.LocalStorage;
@@ -48,6 +50,32 @@ namespace BeautySalonSite.Service.AuthService
             await _localStorage.RemoveItemAsync(_storageItemName);
             await _authStateProvider.GetAuthenticationStateAsync();
             return new Result<string>("Success");
+        }
+
+        public async Task<Result<string>> Register(ClientRegistration request)
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync<ClientRegistration>("customer/register", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                var error = await response.Content.ReadFromJsonAsync<Error>();
+
+                if (error is not null && error.Message.Equals("This email is already used"))
+                {
+                    return new Result<string>(new UsedEmailException());
+                }
+
+                if (error is not null && error.Message.Equals("This phone number is already used"))
+                {
+                    return new Result<string>(new UsedPhoneException());
+                }
+            }
+            return new Result<string>(new ServerException());
         }
     }
 }

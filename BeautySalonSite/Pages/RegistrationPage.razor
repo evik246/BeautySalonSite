@@ -2,8 +2,10 @@
 
 @using BeautySalonSite.Models.CustomerModels;
 @using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Service.AuthService;
 
-@inject HttpClient Http
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Регистрация</PageTitle>
@@ -68,25 +70,23 @@
 
     protected async Task Registration()
     {
-        HttpResponseMessage response = await Http.PostAsJsonAsync<ClientRegistration>("customer/register", Client);
+        var result = await AuthService.Register(Client);
 
-        if (response.IsSuccessStatusCode)
+        if (result.State == Models.Other.ResultState.Success)
         {
             Navigation.NavigateTo("login");
         }
 
-        error = await response.Content.ReadFromJsonAsync<Error>();
-
-        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        if (result.State == Models.Other.ResultState.Failure)
         {
-            if (error is not null && error.Message.Equals("This email is already used"))
+            if (result.Exception is UsedEmailException)
             {
-                error.Message = "Эта почта уже занята";
+                error = new() { Message = "Эта почта уже занята" };
             }
 
-            if (error is not null && error.Message.Equals("This phone number is already used"))
+            if (result.Exception is UsedPhoneException)
             {
-                error.Message = "Этот номер телефона уже занят";
+                error = new() { Message = "Этот номер телефона уже занят" };
             }
         }
     }

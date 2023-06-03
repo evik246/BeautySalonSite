@@ -1,4 +1,5 @@
-﻿using BeautySalonSite.Models.Other;
+﻿using BeautySalonSite.Models.CustomerModels;
+using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.UserModels;
 
 namespace BeautySalonSite.Service.AuthService
@@ -7,5 +8,6 @@ namespace BeautySalonSite.Service.AuthService
     {
         Task<Result<string>> Logout();
         Task<Result<string>> Login(UserLogin request);
+        Task<Result<string>> Register(ClientRegistration request);
     }
 }

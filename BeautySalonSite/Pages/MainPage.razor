@@ -3,9 +3,9 @@
 
 @using BeautySalonSite.Models.CategoryModels;
 @using BeautySalonSite.Service.CategoryService;
+@using BeautySalonSite.Service.SalonService;
 
-@inject HttpClient Http
-@inject ILocalStorageService LocalStorage
+@inject ISalonService SalonService
 @inject ICategoryService CategoryService
 
 <PageTitle>Главная</PageTitle>
@@ -101,14 +101,10 @@
 
     private async Task GetSalonIdFromStorage()
     {
-        var stringId = await LocalStorage.GetItemAsStringAsync("salonid");
-        if (stringId is not null)
+        var result = await SalonService.GetSalonIdFromLocalStorage();
+        if (result.State == Models.Other.ResultState.Success)
         {
-            stringId = stringId.Replace("\"", "");
-            if (int.TryParse(stringId, out int salonId))
-            {
-                SalonId = salonId;
-            }
+            SalonId = result.Value!;
         }
     }
 

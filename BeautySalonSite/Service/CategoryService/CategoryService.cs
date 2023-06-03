@@ -9,12 +9,10 @@ namespace BeautySalonSite.Service.CategoryService
     public class CategoryService : ICategoryService
     {
         private readonly HttpClient _httpClient;
-        private readonly ILocalStorageService _localStorage;
 
-        public CategoryService(HttpClient httpClient, ILocalStorageService localStorage)
+        public CategoryService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _localStorage = localStorage;
         }
 
         public async Task<Result<IEnumerable<Category>>> GetCategories(int salonId)

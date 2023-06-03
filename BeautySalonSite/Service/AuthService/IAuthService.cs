@@ -1,7 +1,11 @@
-﻿namespace BeautySalonSite.Service.AuthService
+﻿using BeautySalonSite.Models.Other;
+using BeautySalonSite.Models.UserModels;
+
+namespace BeautySalonSite.Service.AuthService
 {
     public interface IAuthService
     {
-        Task Logout();
+        Task<Result<string>> Logout();
+        Task<Result<string>> Login(UserLogin request);
     }
 }

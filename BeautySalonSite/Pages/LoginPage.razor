@@ -1,10 +1,10 @@
 ﻿@page "/login"
 
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.UserModels;
+@using BeautySalonSite.Service.AuthService;
 
-@inject HttpClient Http
-@inject AuthenticationStateProvider AuthStateProvider
-@inject ILocalStorageService LocalStorage
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Вход в учетную запись</PageTitle>
@@ -48,16 +48,16 @@
 
     protected async Task Login()
     {
-        HttpResponseMessage response = await Http.PostAsJsonAsync<UserLogin>("auth/login", User);
+        var result = await AuthService.Login(User);
 
-        if (response.IsSuccessStatusCode)
+        if (result.State == Models.Other.ResultState.Success)
         {
-            token = await response.Content.ReadAsStringAsync();
-            await LocalStorage.SetItemAsync("token", token);
-            await AuthStateProvider.GetAuthenticationStateAsync();
             Navigation.NavigateTo("client/account", forceLoad: false);
         }
 
-        unauthorized = response.StatusCode == System.Net.HttpStatusCode.Unauthorized;
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            unauthorized = result.Exception is UnauthorizedException;
+        }
     }
 }

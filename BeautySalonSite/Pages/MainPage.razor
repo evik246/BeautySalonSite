@@ -2,9 +2,11 @@
 @page "/salon/{SalonId:int}"
 
 @using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Service.CategoryService;
 
 @inject HttpClient Http
 @inject ILocalStorageService LocalStorage
+@inject ICategoryService CategoryService
 
 <PageTitle>Главная</PageTitle>
 
@@ -112,6 +114,10 @@
 
     private async Task GetCategories()
     {
-        categories = await Http.GetFromJsonAsync<Category[]>($"category/salon/{SalonId}");
+        var result = await CategoryService.GetCategories(SalonId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            categories = result.Value!.ToArray();
+        }
     }
 }

@@ -9,5 +9,6 @@ namespace BeautySalonSite.Service.AuthService
         Task<Result<string>> Logout();
         Task<Result<string>> Login(UserLogin request);
         Task<Result<string>> Register(ClientRegistration request);
+        Task<Result<string>> ResetPassword(ResetPasswordRequest request);
     }
 }

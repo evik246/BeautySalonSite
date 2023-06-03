@@ -54,7 +54,7 @@ namespace BeautySalonSite.Service.AuthService
 
         public async Task<Result<string>> Register(ClientRegistration request)
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync<ClientRegistration>("customer/register", request);
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("customer/register", request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -75,6 +75,23 @@ namespace BeautySalonSite.Service.AuthService
                     return new Result<string>(new UsedPhoneException());
                 }
             }
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> ResetPassword(ResetPasswordRequest request)
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync("customer/account/reset_password", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                return new Result<string>(new UnauthorizedException());
+            }
+
             return new Result<string>(new ServerException());
         }
     }

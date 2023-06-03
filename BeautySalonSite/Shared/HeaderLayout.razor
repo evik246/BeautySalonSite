@@ -1,9 +1,10 @@
 ﻿@using BeautySalonSite.Models.SalonModels
+@using BeautySalonSite.Service.AuthService;
+@using BeautySalonSite.Service.SalonService;
 
-@inject HttpClient Http
 @inject NavigationManager Navigation
-@inject ILocalStorageService LocalStorage
-@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
+@inject ISalonService SalonService
 
 <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-white shadow-sm p-1 mb-2">
     <div class="container">
@@ -94,12 +95,16 @@
 
     protected override async Task OnInitializedAsync()
     {
-        salons = await Http.GetFromJsonAsync<SalonWithOnlyAddress[]>("salon");
-
-        salonId = await LocalStorage.GetItemAsStringAsync("salonid");
-        if (salonId is not null)
+        var result = await SalonService.GetSalonsWithAddress();
+        if (result.State == Models.Other.ResultState.Success)
         {
-            salonId = SalonId.Replace("\"", "");
+            salons = result.Value!.ToArray();
+        }
+
+        var result2 = await SalonService.GetSalonIdFromLocalStorage();
+        if (result2.State == Models.Other.ResultState.Success)
+        {
+            salonId = result2.Value!.ToString();
         }
     }
 
@@ -114,13 +119,13 @@
 
     private async void UpdateSalonId()
     {
-        if (!int.TryParse(SalonId, out int id))
+        if (int.TryParse(SalonId, out int id))
         {
-            await LocalStorage.RemoveItemAsync("salonid");
+            await SalonService.SetSalonIdInLocalStorage(id);
         }
         else
         {
-            await LocalStorage.SetItemAsync("salonid", SalonId);
+            await SalonService.RemoveSalonIdFromLocalStorage();
         }
 
         var mainPageLink = GetMainPageLink();
@@ -133,8 +138,7 @@
 
     private async Task Logout()
     {
-        await LocalStorage.RemoveItemAsync("token");
-        await AuthStateProvider.GetAuthenticationStateAsync();
+        await AuthService.Logout();
         Navigation.NavigateTo(GetMainPageLink());
     }
 

@@ -7,6 +7,7 @@
 
 @inject ISalonService SalonService
 @inject ICategoryService CategoryService
+@inject NavigationManager Navigation
 
 <PageTitle>Главная</PageTitle>
 
@@ -91,6 +92,10 @@
     protected override async Task OnInitializedAsync()
     {
         await GetSalonIdFromStorage();
+        if (SalonId > 0)
+        {
+            Navigation.NavigateTo($"salon/{SalonId}");
+        }
         await GetCategories();
     }
 

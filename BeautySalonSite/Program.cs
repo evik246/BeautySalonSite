@@ -6,6 +6,7 @@ using Blazored.LocalStorage;
 using BeautySalonSite.AuthProviders;
 using BeautySalonSite.Service.CategoryService;
 using BeautySalonSite.Service.SalonService;
+using BeautySalonSite.Service.AuthService;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -15,6 +16,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https:/
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ISalonService, SalonService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
 

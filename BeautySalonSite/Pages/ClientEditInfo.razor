@@ -110,5 +110,18 @@
         }
 
         error = await response.Content.ReadFromJsonAsync<Error>();
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+        {
+            if (error is not null && error.Message.Equals("This email is already used"))
+            {
+                error.Message = "Эта почта уже занята";
+            }
+
+            if (error is not null && error.Message.Equals("This phone number is already used"))
+            {
+                error.Message = "Этот номер телефона уже занят";
+            }
+        }
     }
 }

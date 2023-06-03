@@ -1,9 +1,10 @@
 ﻿@page "/client/account"
 
 @using BeautySalonSite.Models.CustomerModels;
+@using BeautySalonSite.Service.CustomerService;
 @using Microsoft.AspNetCore.Authorization;
 
-@inject HttpClient Http
+@inject ICustomerService CustomerService
 
 @attribute [Authorize(Roles = "Client")]
 
@@ -66,6 +67,10 @@
 
     private async Task GetCustomer()
     {
-        customer = await Http.GetFromJsonAsync<Customer>("customer/account");
+        var result = await CustomerService.GetCustomer();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            customer = result.Value!;
+        }
     }
 }

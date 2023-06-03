@@ -7,6 +7,7 @@ using BeautySalonSite.AuthProviders;
 using BeautySalonSite.Service.CategoryService;
 using BeautySalonSite.Service.SalonService;
 using BeautySalonSite.Service.AuthService;
+using BeautySalonSite.Service.CustomerService;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -17,6 +18,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ISalonService, SalonService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICustomerService,  CustomerService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
 

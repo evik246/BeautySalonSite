@@ -2,9 +2,11 @@
 
 @using BeautySalonSite.Models.CustomerModels;
 @using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Service.CustomerService;
 @using Microsoft.AspNetCore.Authorization;
 
-@inject HttpClient Http
+@inject ICustomerService CustomerService
 @inject NavigationManager Navigation
 
 @attribute [Authorize(Roles = "Client")]
@@ -88,39 +90,28 @@
 
     private async Task EditCustomer()
     {
-        HttpResponseMessage response = await Http.PutAsJsonAsync<CustomerUpdate>("customer/account", customer);
+        var result = await CustomerService.UpdateCustomer(customer);
 
-        if (response.IsSuccessStatusCode)
+        if (result.State == Models.Other.ResultState.Success)
         {
             Navigation.NavigateTo("client/account");
         }
 
-        if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        if (result.State == Models.Other.ResultState.Failure)
         {
-            var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
-            if (errorResponse?.Errors != null && errorResponse.Errors.ContainsKey(""))
+            if (result.Exception is NoInputContentException)
             {
-                var errorMessage = errorResponse.Errors[""][0];
-                if (errorMessage.Equals("At least one property must be specified"))
-                {
-                    error = new Error { Message = "Необходимо указать хотя бы одно значение" };
-                }
-            }
-            return;
-        }
-
-        error = await response.Content.ReadFromJsonAsync<Error>();
-
-        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-        {
-            if (error is not null && error.Message.Equals("This email is already used"))
-            {
-                error.Message = "Эта почта уже занята";
+                error = new() { Message = "Необходимо указать хотя бы одно значение" };
             }
 
-            if (error is not null && error.Message.Equals("This phone number is already used"))
+            if (result.Exception is UsedEmailException)
             {
-                error.Message = "Этот номер телефона уже занят";
+                error = new() { Message = "Эта почта уже занята" };
+            }
+
+            if (result.Exception is UsedPhoneException)
+            {
+                error = new() { Message = "Этот номер телефона уже занят" };
             }
         }
     }

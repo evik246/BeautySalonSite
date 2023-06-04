@@ -79,7 +79,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await GetCurrentSalonId();
+        await SetDefaultSalon();
         await GetCategories();
         SetDefaultCategory();
         await GetServices();
@@ -87,7 +87,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await GetCurrentSalonId();
+        await SetDefaultSalon();
         await GetCategories();
         SetDefaultCategory();
         await GetServices();
@@ -98,6 +98,15 @@
         if (categories != null && categories.Length > 0 && CategoryId <= 0)
         {
             CategoryId = categories.First().Id;
+            Navigation.NavigateTo($"salon/{SalonId}/service/category/{CategoryId}");
+        }
+    }
+
+    private async Task SetDefaultSalon()
+    {
+        if (SalonId <= 0)
+        {
+            await GetCurrentSalonId();
             Navigation.NavigateTo($"salon/{SalonId}/service/category/{CategoryId}");
         }
     }

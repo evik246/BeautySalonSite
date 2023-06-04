@@ -18,7 +18,14 @@
             <div class="col-lg-6">
                 <h1 class="display-4 mb-2 fw-bold text-white">Вы заслуживаете лучшего!</h1>
                 <p class="text-white">Запишитесь на наши услуги! Вам точно понравится!</p>
-                <a href="" class="btn btn-warning mt-4 btn-lg">Записаться</a>
+                <AuthorizeView Roles="Client">
+                    <Authorized>
+                        <a href="client/account/appointment" class="btn btn-warning mt-4 btn-lg">Записаться</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="login" class="btn btn-warning mt-4 btn-lg">Записаться</a>
+                    </NotAuthorized>
+                </AuthorizeView>
             </div>
         </div>
     </div>

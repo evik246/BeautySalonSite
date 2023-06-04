@@ -31,7 +31,10 @@
                     <p><b>Мастер:</b> @($"{appointment.Master.Name} {appointment.Master.LastName}")</p>
                     <p><b>Услуга:</b> @appointment.Service.Name</p>
                     <p><b>Цена:</b> @appointment.Service.Price</p>
-                    <button class="btn btn-danger mt-4" @onclick="CancelClientAppointment">Подтвердить отмену</button>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="client/account/appointment" class="mx-2 btn btn-warning">Отмена</a>
+                        <button class="btn btn-danger mx-2" @onclick="CancelClientAppointment">Подтвердить отмену</button>
+                    </div>
                 }
                 else
                 {

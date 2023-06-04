@@ -1,10 +1,46 @@
-﻿@page "/master"
+﻿@page "/salon/{SalonId:int}/master"
+
+@using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.SalonService;
 
 @inject IEmployeeService EmployeeService
+@inject ISalonService SalonService
+@inject NavigationManager Navigation
 
 <PageTitle>Мастера</PageTitle>
 
 @code {
+    [Parameter]
+    public int SalonId { get; set; }
 
+    private Paging paging = new() { PageSize = 40 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDefaultSalon();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetDefaultSalon();
+    }
+
+    private async Task SetDefaultSalon()
+    {
+        if (SalonId <= 0)
+        {
+            await GetCurrentSalonId();
+            Navigation.NavigateTo($"salon/{SalonId}/master");
+        }
+    }
+
+    private async Task GetCurrentSalonId()
+    {
+        var resultSalonId = await SalonService.GetSalonIdFromLocalStorage();
+        if (resultSalonId.State == ResultState.Success)
+        {
+            SalonId = resultSalonId.Value!;
+        }
+    }
 }

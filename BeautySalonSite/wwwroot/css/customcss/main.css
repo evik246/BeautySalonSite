@@ -10,26 +10,6 @@ body {
     background-color: #f8f9fa;
 }
 
-.category-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-    cursor: pointer;
-}
-
-.category-circle a {
-    color: #fff;
-    text-decoration: none;
-}
-
 .page-item.active .page-link {
     color: #fff !important;
     background: #f00 !important;
@@ -134,6 +114,12 @@ div.scroll-container img {
     padding: 1px;
     width: 30vh;
     height: 30vh;
+    object-fit: cover;
+}
+
+.profile-photo {
+    width: 100px;
+    height: 100px;
     object-fit: cover;
 }
 

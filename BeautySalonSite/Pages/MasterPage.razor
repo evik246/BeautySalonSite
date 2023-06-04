@@ -1,5 +1,6 @@
 ﻿@page "/salon/{SalonId:int}/master"
 
+@using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
@@ -10,20 +11,55 @@
 
 <PageTitle>Мастера</PageTitle>
 
+<div class="container">
+    <div class="row my-5">
+        <div class="col-md-12">
+            <div class="py-3 text-center mb-1 mt-1 px-5">
+                <h3>Мастера</h3>
+            </div>
+            @if (masters != null && masters.Length > 0)
+            {
+                @foreach (var master in masters)
+                {
+                    <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
+                        <div class="card-body">
+                            <div class="mb-4 d-flex justify-content-start align-content-center">
+                                <div class="me-3">
+                                    <img src="@(master.PhotoPath == null? "/img/blank-profile.jpg" : master.PhotoPath)"
+                                         class="rounded profile-photo" alt="Фотография мастера" />
+                                </div>
+                                <h5 class="card-title"><b>@($"{master.Name} {master.LastName}")</b></h5>
+                            </div>
+                            <p class="card-text mt-4">@master.Specialization</p>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <a href="" class="btn btn-warning mt-1">Записаться</a>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
 @code {
     [Parameter]
     public int SalonId { get; set; }
 
     private Paging paging = new() { PageSize = 40 };
 
+    private Master[]? masters;
+
     protected override async Task OnInitializedAsync()
     {
         await SetDefaultSalon();
+        await GetMasters();
     }
 
     protected override async Task OnParametersSetAsync()
     {
         await SetDefaultSalon();
+        await GetMasters();
     }
 
     private async Task SetDefaultSalon()
@@ -41,6 +77,15 @@
         if (resultSalonId.State == ResultState.Success)
         {
             SalonId = resultSalonId.Value!;
+        }
+    }
+
+    private async Task GetMasters()
+    {
+        var result = await EmployeeService.GetMasters(SalonId, paging);
+        if (result.State == ResultState.Success)
+        {
+            masters = result.Value!.ToArray();
         }
     }
 }

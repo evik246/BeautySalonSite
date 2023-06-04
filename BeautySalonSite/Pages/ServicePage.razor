@@ -1,5 +1,5 @@
-﻿@page "/service"
-@page "/service/category/{CategoryId:int}"
+﻿@page "/salon/{SalonId:int}/service"
+@page "/salon/{SalonId:int}/service/category/{CategoryId:int}"
 
 @using BeautySalonSite.Models.CategoryModels;
 @using BeautySalonSite.Models.Other;
@@ -27,7 +27,7 @@
                     @foreach (var category in categories)
                     {
                         <div class="m-1 mr-3 mb-3">
-                            <NavLink class="btn btn-outline-dark" href="@($"/service/category/{category.Id}")">@category.Name</NavLink>
+                            <NavLink class="btn btn-outline-dark" href="@($"salon/{SalonId}/service/category/{category.Id}")">@category.Name</NavLink>
                         </div>
                     }
                 }
@@ -69,6 +69,7 @@
     [Parameter]
     public int CategoryId { get; set; }
 
+    [Parameter]
     public int SalonId { get; set; }
 
     private Paging paging = new() { PageSize = 40 };
@@ -97,7 +98,7 @@
         if (categories != null && categories.Length > 0 && CategoryId <= 0)
         {
             CategoryId = categories.First().Id;
-            Navigation.NavigateTo($"service/category/{CategoryId}");
+            Navigation.NavigateTo($"salon/{SalonId}/service/category/{CategoryId}");
         }
     }
 

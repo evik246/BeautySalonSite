@@ -1,0 +1,73 @@
+﻿@page "/client/account/appointment/{AppointmentId:int}/cancel"
+
+@using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Service.AppointmentService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IAppointmentService AppointmentService
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Client")]
+
+<PageTitle>Отмена записи</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <ClientNavMenu></ClientNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @if (appointment != null)
+                {
+                    <h4 class="mb-4">Уверены, что хотите отменить эту запись запись?</h4>
+                    <p><b>Дата:</b> @appointment.Date.ToShortDateString()</p>
+                    <p><b>Время:</b> @appointment.Date.ToShortTimeString()</p>
+                    <p><b>Мастер:</b> @($"{appointment.Master.Name} {appointment.Master.LastName}")</p>
+                    <p><b>Услуга:</b> @appointment.Service.Name</p>
+                    <p><b>Цена:</b> @appointment.Service.Price</p>
+                    <button class="btn btn-danger mt-4" @onclick="CancelClientAppointment">Подтвердить отмену</button>
+                }
+                else
+                {
+                    <p>Запись не найдена.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int AppointmentId { get; set; }
+
+    private CustomerAppointment? appointment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetClientAppointment();
+    }
+
+    private async Task GetClientAppointment()
+    {
+        var result = await AppointmentService.GetCustomerAppointmentById(AppointmentId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            appointment = result.Value!;
+        }
+    }
+
+    private async Task CancelClientAppointment()
+    {
+        var result = await AppointmentService.CancelCustomerAppointment(AppointmentId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            Navigation.NavigateTo("client/account/appointment");
+        }
+    }
+}

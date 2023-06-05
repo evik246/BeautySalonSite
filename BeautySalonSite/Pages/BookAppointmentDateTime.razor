@@ -3,15 +3,18 @@
 @using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Models.ScheduleModels;
 @using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
+@using BeautySalonSite.Service.ScheduleService;
 @using BeautySalonSite.Service.ServiceService;
 @using Microsoft.AspNetCore.Authorization;
 
 @inject IServiceService ServiceService
 @inject ISalonService SalonService
 @inject IEmployeeService EmployeeService
+@inject IScheduleService ScheduleService
 @inject NavigationManager Navigation
 
 @attribute [Authorize(Roles = "Client")]
@@ -57,6 +60,13 @@
     private ServiceWIthPrice? service;
     private Master? master;
 
+    private DateOnly startDate;
+    private DateOnly endDate;
+    private DateOnly selectedDate;
+
+    private MasterWorkingDay[]? workingDays;
+    private MasterAvailableSlot[]? slots;
+
     protected override async Task OnInitializedAsync()
     {
         await SetDefaultSalon();
@@ -71,6 +81,24 @@
         await GetSalon();
         await GetService();
         await GetMaster();
+    }
+
+    private async Task GetMasterWorkingDays()
+    {
+        var result = await ScheduleService.GetMasterWorkingDays(MasterId, startDate, endDate);
+        if (result.State == ResultState.Success)
+        {
+            workingDays = result.Value!.ToArray();
+        }
+    }
+
+    private async Task GetAvailableSlots()
+    {
+        var result = await ScheduleService.GetMasterAvailableSlots(MasterId, ServiceId, selectedDate);
+        if (result.State == ResultState.Success)
+        {
+            slots = result.Value!.ToArray();
+        }
     }
 
     private async Task SetDefaultSalon()

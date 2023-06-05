@@ -1,6 +1,8 @@
 ﻿@page "/master/account/appointment"
 
 @using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Service.AppointmentService;
 @using Microsoft.AspNetCore.Authorization;
@@ -26,6 +28,12 @@
                 <div class="mb-2 mt-2">
                     <h4 class="pb-3 my-1 px-2">Мои записи</h4>
                 </div>
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
             </div>
             <div class="py-3 text-center mb-1 mt-4">
                 <h4>Предстоящие записи</h4>
@@ -34,6 +42,7 @@
             {
                 @foreach (var appointment in appointments)
                 {
+                    var tempId = appointment.Id;
                     <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
                         <div class="card-body">
                             <div class="mb-4">
@@ -41,11 +50,11 @@
                                 <h5 class="card-title"><b>Время:</b> @appointment.Date.ToShortTimeString()</h5>
                             </div>
 
-                            <p class="card-text"><b>Услуга:</b> <a class="link-yellow" href="">@appointment.Service.Name</a></p>
+                            <p class="card-text"><b>Услуга:</b> @appointment.Service.Name</p>
                             <p class="card-text"><b>Клиент:</b> @appointment.Customer.Name</p>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <a class="btn btn-success mt-1">Отметить выполненной</a>
+                            <button @onclick="(() => MarkAppointmentComplete(tempId))" class="btn btn-success mt-1">Отметить выполненной</button>
                         </div>
                     </div>
                 }
@@ -78,11 +87,46 @@
 
     private MasterAppointment[]? appointments;
 
+    private Error? error;
+
     protected override async Task OnInitializedAsync()
     {
         var result = await GetAppointments();
         appointments = result.ToArray();
         await HasNextPage();
+    }
+
+    private async Task MarkAppointmentComplete(int id)
+    {
+        var result = await AppointmentService.MarkMasterAppointmentComplete(id);
+        if (result.State == ResultState.Success)
+        {
+            var result2 = await GetAppointments();
+            appointments = result2.ToArray();
+            await HasNextPage();
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            if (result.Exception is NotFoundException)
+            {
+                error = new() { Message = "Записи не существует" };
+                return;
+            }
+
+            if (result.Exception is UpcomingAppointmentException)
+            {
+                error = new() { Message = "Запись еще не наступила." };
+                return;
+            }
+
+            if (result.Exception is ConflictException e)
+            {
+                error = new() { Message = e.Message };
+                return;
+            }
+            error = new() { Message = "Что-то пошло не так." };
+        }
     }
 
     private async Task<IEnumerable<MasterAppointment>> GetAppointments()

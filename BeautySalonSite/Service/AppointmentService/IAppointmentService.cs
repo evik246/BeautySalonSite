@@ -10,5 +10,6 @@ namespace BeautySalonSite.Service.AppointmentService
         Task<Result<string>> CancelCustomerAppointment(int appointmentId);
         Task<Result<string>> MakeCustomerAppointment(CustomerAppointmentCreate request);
         Task<Result<IEnumerable<MasterAppointment>>> GetMasterAppointments(Paging paging);
+        Task<Result<string>> MarkMasterAppointmentComplete(int appointmentId);
     }
 }

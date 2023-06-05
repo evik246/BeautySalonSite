@@ -13,28 +13,32 @@
             <img src="img/logo.png" alt="" height="64" />
         </a>
 
-        @if (salons is not null && salons.Any())
-        {
-            <div class="m-1">
-                <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
-                    @if (string.IsNullOrEmpty(SalonId))
-                    {
-                        <option value="" selected hidden>Выберите салон</option>
-                    }
-                    @foreach (var salon in salons!)
-                    {
-                        if (!string.IsNullOrEmpty(SalonId) && salon.Id.Equals(SalonId))
-                        {
-                            <option selected value="@salon.Id">@salon.ToString()</option>
-                        }
-                        else
-                        {
-                            <option value="@salon.Id">@salon.ToString()</option>
-                        }
-                    }
-                </InputSelect>
-            </div>
-        }
+        <AuthorizeView Roles="Master,Manager">
+            <NotAuthorized>
+                @if (salons is not null && salons.Any())
+                {
+                    <div class="m-1">
+                        <InputSelect id="select-salon" class="form-select" @bind-Value="@SalonId">
+                            @if (string.IsNullOrEmpty(SalonId))
+                            {
+                                <option value="" selected hidden>Выберите салон</option>
+                            }
+                            @foreach (var salon in salons!)
+                            {
+                                if (!string.IsNullOrEmpty(SalonId) && salon.Id.Equals(SalonId))
+                                {
+                                    <option selected value="@salon.Id">@salon.ToString()</option>
+                                }
+                                else
+                                {
+                                    <option value="@salon.Id">@salon.ToString()</option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+                }
+            </NotAuthorized>
+        </AuthorizeView>
 
         <button @onclick="ToggleNavMenu" class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -42,24 +46,37 @@
 
         <div @onclick="ToggleNavMenu" class="@NavMenuCssClass navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item m-1">
-                    <NavLink class="nav-link" href="@GetMainPageLink()" Match="NavLinkMatch.All">
-                        Главная
-                    </NavLink>
-                </li>
-                <li class="nav-item m-1">
-                    <NavLink class="nav-link" href="@($"salon/{SalonId}/service")">
-                        Услуги
-                    </NavLink>
-                </li>
-                <li class="nav-item m-1">
-                    <NavLink class="nav-link" href="@($"salon/{SalonId}/master")">
-                        Специалисты
-                    </NavLink>
-                </li>
-                
-                <AuthorizeView>
+                <AuthorizeView Roles="Master">
                     <Authorized>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="master/account">
+                                Личный кабинет
+                            </NavLink>
+                        </li>
+                        <li class="nav-item m-1">
+                            <NavLink class="btn btn-warning" @onclick="Logout">
+                                Выйти
+                            </NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="Client">
+                    <Authorized>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@GetMainPageLink()" Match="NavLinkMatch.All">
+                                Главная
+                            </NavLink>
+                        </li>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@($"salon/{SalonId}/service")">
+                                Услуги
+                            </NavLink>
+                        </li>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@($"salon/{SalonId}/master")">
+                                Специалисты
+                            </NavLink>
+                        </li>
                         <li class="nav-item m-1">
                             <NavLink class="nav-link" href="client/account">
                                 Личный кабинет
@@ -71,7 +88,24 @@
                             </NavLink>
                         </li>
                     </Authorized>
+                </AuthorizeView>
+                <AuthorizeView>
                     <NotAuthorized>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@GetMainPageLink()" Match="NavLinkMatch.All">
+                                Главная
+                            </NavLink>
+                        </li>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@($"salon/{SalonId}/service")">
+                                Услуги
+                            </NavLink>
+                        </li>
+                        <li class="nav-item m-1">
+                            <NavLink class="nav-link" href="@($"salon/{SalonId}/master")">
+                                Специалисты
+                            </NavLink>
+                        </li>
                         <li class="nav-item m-1">
                             <NavLink class="btn btn-warning" href="login">
                                 Войти

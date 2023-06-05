@@ -37,5 +37,16 @@ namespace BeautySalonSite.Service.ServiceService
 
             return new Result<IEnumerable<ServiceWithoutCategory>>(services);
         }
+
+        public async Task<Result<ServiceWIthPrice>> GetServiceById(int serviceId)
+        {
+            var service = await _httpClient.GetFromJsonAsync<ServiceWIthPrice>($"service/{serviceId}");
+
+            if (service == null)
+            {
+                return new Result<ServiceWIthPrice>(new NotFoundException());
+            }
+            return new Result<ServiceWIthPrice>(service);
+        }
     }
 }

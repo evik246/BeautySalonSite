@@ -34,5 +34,17 @@ namespace BeautySalonSite.Service.EmployeeService
             }
             return new Result<IEnumerable<Master>>(masters);
         }
+
+        public async Task<Result<IEnumerable<Master>>> GetMastersByService(int salonId, int serviceId, Paging paging)
+        {
+            var masters = await _httpClient.GetFromJsonAsync<IEnumerable<Master>>($"employee/salon/{salonId}/master/service/{serviceId}?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (masters == null)
+            {
+                return new Result<IEnumerable<Master>>(new ServerException());
+            }
+
+            return new Result<IEnumerable<Master>>(masters);
+        }
     }
 }

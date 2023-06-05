@@ -28,9 +28,11 @@
                                     <img src="@(master.PhotoPath == null? "/img/blank-profile.jpg" : master.PhotoPath)"
                                          class="rounded profile-photo" alt="Фотография мастера" />
                                 </div>
-                                <h5 class="card-title"><b>@($"{master.Name} {master.LastName}")</b></h5>
+                                <div>
+                                    <h5 class="card-title"><b>@($"{master.Name} {master.LastName}")</b></h5>
+                                    <p class="card-text">@master.Specialization</p>
+                                </div>
                             </div>
-                            <p class="card-text mt-4">@master.Specialization</p>
                         </div>
                         <div class="d-flex justify-content-end">
                             <a href="" class="btn btn-warning mt-1">Записаться</a>

@@ -2,10 +2,8 @@
 using BeautySalonSite.Models.ErrorModels;
 using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
+using BeautySalonSite.Models.ScheduleModels;
 using System.Net.Http.Json;
-using System.Reflection;
-using System.Text;
-using System.Text.Json;
 
 namespace BeautySalonSite.Service.AppointmentService
 {
@@ -121,6 +119,20 @@ namespace BeautySalonSite.Service.AppointmentService
             {
                 return new Result<string>(new ServerException(ex.Message));
             }
+        }
+
+        public async Task<Result<int>> GetMasterAppointmentCount(DateRange dateRange)
+        {
+            var count = await _httpClient.GetFromJsonAsync<int>($"appointment/master/account/count?StartDate={dateRange.StartDate:yyyy-MM-dd}&EndDate={dateRange.EndDate:yyyy-MM-dd}");
+
+            return new Result<int>(count);
+        }
+
+        public async Task<Result<decimal>> GetMasterAppointmentIncome(DateRange dateRange)
+        {
+            var income = await _httpClient.GetFromJsonAsync<decimal>($"appointment/master/account/income?StartDate={dateRange.StartDate:yyyy-MM-dd}&EndDate={dateRange.EndDate:yyyy-MM-dd}");
+
+            return new Result<decimal>(income);
         }
     }
 }

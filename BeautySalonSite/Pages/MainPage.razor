@@ -2,11 +2,13 @@
 @page "/salon/{SalonId:int}"
 
 @using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Service.AuthService;
 @using BeautySalonSite.Service.CategoryService;
 @using BeautySalonSite.Service.SalonService;
 
 @inject ISalonService SalonService
 @inject ICategoryService CategoryService
+@inject IAuthService AuthService
 @inject NavigationManager Navigation
 
 <PageTitle>Главная</PageTitle>
@@ -109,6 +111,19 @@
     protected override async Task OnParametersSetAsync()
     {
         await GetCategories();
+    }
+
+    private async Task NavigateMaster()
+    {
+        var result = await AuthService.GetUserRole();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            if (result.Value!.Equals("Master"))
+            {
+                Navigation.NavigateTo("master/account", forceLoad: false);
+                return;
+            }
+        }
     }
 
     private async Task GetSalonIdFromStorage()

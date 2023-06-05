@@ -1,0 +1,65 @@
+﻿@page "/master/account/perfomance"
+
+@using BeautySalonSite.Models.ScheduleModels;
+@using BeautySalonSite.Service.AppointmentService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IAppointmentService AppointmentService
+
+@attribute [Authorize(Roles = "Master")]
+
+<PageTitle>Успеваемость на работе</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <MasterNavMenu></MasterNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1 px-2">Личная информация</h4>
+                    @if (appointmentCount != null && income != null)
+                    {
+                        <p><b>Количество оказанных услуг:</b> @appointmentCount</p>
+                        <p><b>Доход за оказанные услуги:</b> @income</p>
+                    }
+                    else
+                    {
+                        <p class="text-center">Загрузка данных...</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int? appointmentCount;
+    private decimal? income;
+
+    private DateRange dateRange = new();
+
+    private async Task GetAppointmentCount()
+    {
+        var result = await AppointmentService.GetMasterAppointmentCount(dateRange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            appointmentCount = result.Value!;
+        }
+    }
+
+    private async Task GetIncome()
+    {
+        var result = await AppointmentService.GetMasterAppointmentIncome(dateRange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            income = result.Value!;
+        }
+    }
+}

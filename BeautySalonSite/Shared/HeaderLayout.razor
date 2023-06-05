@@ -147,6 +147,19 @@
         }
     }
 
+    private async Task NavigateMaster()
+    {
+        var result = await AuthService.GetUserRole();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            if (result.Value!.Equals("Master"))
+            {
+                Navigation.NavigateTo("master/account", forceLoad: false);
+                return;
+            }
+        }
+    }
+
     private string GetMainPageLink()
     {
         if (string.IsNullOrEmpty(SalonId))

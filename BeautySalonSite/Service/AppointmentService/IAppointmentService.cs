@@ -1,5 +1,6 @@
 ﻿using BeautySalonSite.Models.AppointmentModels;
 using BeautySalonSite.Models.Other;
+using BeautySalonSite.Models.ScheduleModels;
 
 namespace BeautySalonSite.Service.AppointmentService
 {
@@ -11,5 +12,7 @@ namespace BeautySalonSite.Service.AppointmentService
         Task<Result<string>> MakeCustomerAppointment(CustomerAppointmentCreate request);
         Task<Result<IEnumerable<MasterAppointment>>> GetMasterAppointments(Paging paging);
         Task<Result<string>> MarkMasterAppointmentComplete(int appointmentId);
+        Task<Result<int>> GetMasterAppointmentCount(DateRange dateRange);
+        Task<Result<decimal>> GetMasterAppointmentIncome(DateRange dateRange);
     }
 }

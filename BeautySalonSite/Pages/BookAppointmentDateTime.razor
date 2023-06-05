@@ -41,7 +41,50 @@
             }
         </div>
         <div class="col-md-8 order-md-2">
+            @if (workingDays != null && workingDays.Length > 0)
+            {
+                <div class="block p-4 mb-3">
+                    <h5 class="text-center mb-3">@startDate.ToString("MMMM")</h5>
+                    <div class="d-flex justify-content-center align-content-center">
+                        <button class="btn btn-warning bg-white border-0 mx-2" @onclick="(() => ChangeWeek(-1))">
+                            <span id="boot-icon" class="bi bi-caret-left-fill" style="font-size:0.9rem"></span>
+                        </button>
+                        <div class="d-flex flex-row align-items-stretch">
+                            @for (var date = startDate; date <= endDate; date = date.AddDays(1))
+                            {
+                                var isActiveDate = workingDays.Any(d => d.Date == date);
+                                if (isActiveDate)
+                                {
+                                    var workingDay = workingDays.First(d => d.Date == date);
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <button class="btn btn-warning m-1" @onclick="(() => GetAvailableSlots(date))">@date.Day</button>
+                                        @if (workingDay.StartTime != null && workingDay.EndTime != null)
+                                        {
+                                            <p class="m-0">
+                                                @($"{workingDay.StartTime:HH:mm}") - @($"{workingDay.EndTime:HH:mm}")
+                                            </p>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center d-flex flex-column align-items-center">
+                                        <button class="btn btn-light m-1" disabled>@date.Day</button>
+                                        <p class="m-0"></p>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <button class="btn btn-warning bg-white border-0 mx-2" @onclick="(() => ChangeWeek(1))">
+                            <span id="boot-icon" class="bi bi-caret-right-fill" style="font-size:0.9rem"></span>
+                        </button>
+                    </div>
+                </div>
+            }
 
+            <div class="block p-4 mb-3">
+
+            </div>
         </div>
     </div>
 </div>
@@ -69,18 +112,48 @@
 
     protected override async Task OnInitializedAsync()
     {
+        selectedDate = DateOnly.FromDateTime(DateTime.Today);
+        SetDates();
         await SetDefaultSalon();
         await GetSalon();
         await GetService();
         await GetMaster();
+        await GetMasterWorkingDays();
     }
 
     protected override async Task OnParametersSetAsync()
     {
+        selectedDate = DateOnly.FromDateTime(DateTime.Today);
+        SetDates();
         await SetDefaultSalon();
         await GetSalon();
         await GetService();
         await GetMaster();
+        await GetMasterWorkingDays();
+    }
+
+    private async Task ChangeWeek(int weekOffset)
+    {
+        selectedDate = selectedDate.AddDays(weekOffset * 7);
+        SetDates();
+        await GetMasterWorkingDays();
+    }
+
+
+    private void SetDates()
+    {
+        startDate = selectedDate;
+        endDate = startDate.AddDays(6);
+    }
+
+    private async Task GetAvailableSlots(DateOnly date)
+    {
+        selectedDate = date;
+        var result = await ScheduleService.GetMasterAvailableSlots(MasterId, ServiceId, selectedDate);
+        if (result.State == ResultState.Success)
+        {
+            slots = result.Value!.ToArray();
+        }
     }
 
     private async Task GetMasterWorkingDays()

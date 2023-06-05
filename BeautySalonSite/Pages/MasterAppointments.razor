@@ -1,0 +1,125 @@
+﻿@page "/master/account/appointment"
+
+@using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Service.AppointmentService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IAppointmentService AppointmentService
+
+@attribute [Authorize(Roles = "Master")]
+
+<PageTitle>Записи</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <MasterNavMenu></MasterNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1 px-2">Мои записи</h4>
+                </div>
+            </div>
+            <div class="py-3 text-center mb-1 mt-4">
+                <h4>Предстоящие записи</h4>
+            </div>
+            @if (appointments != null && appointments.Length > 0)
+            {
+                @foreach (var appointment in appointments)
+                {
+                    <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h5 class="card-title mb-4"><b>Дата:</b> @appointment.Date.ToShortDateString()</h5>
+                                <h5 class="card-title"><b>Время:</b> @appointment.Date.ToShortTimeString()</h5>
+                            </div>
+
+                            <p class="card-text"><b>Услуга:</b> <a class="link-yellow" href="">@appointment.Service.Name</a></p>
+                            <p class="card-text"><b>Клиент:</b> @appointment.Customer.Name</p>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <a class="btn btn-success mt-1">Отметить выполненной</a>
+                        </div>
+                    </div>
+                }
+
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
+                            <a class="btn-warning link-dark page-link" @onclick="PreviousPage">Предыдущая</a>
+                        </li>
+                        <li class="page-item mx-4">
+                            <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
+                        </li>
+                        <li class="page-item @(hasNextPage ? "" : "disabled")">
+                            <a class="btn-warning link-dark page-link" @onclick="NextPage">Следующая</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="text-center">У вас нет предстоящих записей.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Paging paging = new() { PageSize = 10 };
+    private bool hasNextPage;
+
+    private MasterAppointment[]? appointments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await GetAppointments();
+        appointments = result.ToArray();
+        await HasNextPage();
+    }
+
+    private async Task<IEnumerable<MasterAppointment>> GetAppointments()
+    {
+        var result = await AppointmentService.GetMasterAppointments(paging);
+        if (result.State == ResultState.Success)
+        {
+            return result.Value!;
+        }
+        return new MasterAppointment[0];
+    }
+
+    private async Task PreviousPage()
+    {
+        if (paging.PageNumber > 1)
+        {
+            paging.PageNumber--;
+            var result = await GetAppointments();
+            appointments = result.ToArray();
+        }
+        await HasNextPage();
+    }
+
+    private async Task NextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetAppointments();
+        appointments = result.ToArray();
+        await HasNextPage();
+    }
+
+    private async Task HasNextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetAppointments();
+        paging.PageNumber--;
+
+        hasNextPage = !(result is null || !result.Any());
+    }
+}

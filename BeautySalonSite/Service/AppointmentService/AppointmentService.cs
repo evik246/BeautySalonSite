@@ -77,5 +77,16 @@ namespace BeautySalonSite.Service.AppointmentService
 
             return new Result<string>(new ServerException());
         }
+
+        public async Task<Result<IEnumerable<MasterAppointment>>> GetMasterAppointments(Paging paging)
+        {
+            var appointments = await _httpClient.GetFromJsonAsync<IEnumerable<MasterAppointment>>($"appointment/master/account?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (appointments == null)
+            {
+                return new Result<IEnumerable<MasterAppointment>>(new ServerException());
+            }
+            return new Result<IEnumerable<MasterAppointment>>(appointments);
+        }
     }
 }

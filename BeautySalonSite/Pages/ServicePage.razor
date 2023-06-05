@@ -131,7 +131,7 @@
 
     private async Task GetCategories()
     {
-        var resultCategories = await CategoryService.GetCategories(SalonId);
+        var resultCategories = await CategoryService.GetSalonCategories(SalonId);
         if (resultCategories.State == ResultState.Success)
         {
             categories = resultCategories.Value!.ToArray();

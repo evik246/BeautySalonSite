@@ -5,6 +5,7 @@ namespace BeautySalonSite.Service.CategoryService
 {
     public interface ICategoryService
     {
-        Task<Result<IEnumerable<Category>>> GetCategories(int salonId);
+        Task<Result<IEnumerable<Category>>> GetSalonCategories(int salonId);
+        Task<Result<IEnumerable<Category>>> GetMasterCategories(int masterId);
     }
 }

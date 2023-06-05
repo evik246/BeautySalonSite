@@ -122,7 +122,7 @@
 
     private async Task GetCategories()
     {
-        var result = await CategoryService.GetCategories(SalonId);
+        var result = await CategoryService.GetSalonCategories(SalonId);
         if (result.State == Models.Other.ResultState.Success)
         {
             categories = result.Value!.ToArray();

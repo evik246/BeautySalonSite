@@ -15,7 +15,17 @@ namespace BeautySalonSite.Service.CategoryService
             _httpClient = httpClient;
         }
 
-        public async Task<Result<IEnumerable<Category>>> GetCategories(int salonId)
+        public async Task<Result<IEnumerable<Category>>> GetMasterCategories(int masterId)
+        {
+            var categories = await _httpClient.GetFromJsonAsync<IEnumerable<Category>>($"category/master/{masterId}");
+            if (categories == null)
+            {
+                return new Result<IEnumerable<Category>>(new ServerException());
+            }
+            return new Result<IEnumerable<Category>>(categories);
+        }
+
+        public async Task<Result<IEnumerable<Category>>> GetSalonCategories(int salonId)
         {
             var categories = await _httpClient.GetFromJsonAsync<IEnumerable<Category>>($"category/salon/{salonId}");
             if (categories == null)

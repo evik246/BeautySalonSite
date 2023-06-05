@@ -59,7 +59,7 @@
                             <div class="d-flex justify-content-end">
                                 <AuthorizeView Roles="Client">
                                     <Authorized>
-                                        <a href="@($"")" class="btn btn-warning mt-1">Записаться</a>
+                                        <a href="@($"client/account/appointment/salon/{SalonId}/service/{ServiceId}/master/{master.Id}/datetime")" class="btn btn-warning mt-1">Записаться</a>
                                     </Authorized>
                                     <NotAuthorized>
                                         <a href="login" class="btn btn-warning mt-1">Выбрать</a>

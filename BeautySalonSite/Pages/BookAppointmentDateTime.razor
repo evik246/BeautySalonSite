@@ -1,6 +1,47 @@
 ﻿@page "/client/account/appointment/salon/{SalonId:int}/service/{ServiceId:int}/master/{MasterId:int}/datetime"
 
-<h3>BookAppointmentDateTime</h3>
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.SalonService;
+@using BeautySalonSite.Service.ServiceService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IServiceService ServiceService
+@inject ISalonService SalonService
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Client")]
+
+<PageTitle>Выбор даты и времени записи</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Выбор даты и времени</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            @if (service != null && salon != null && master != null)
+            {
+                <div class="block m-2 p-4">
+                    <p><b>Салон:</b> @($"{salon.ToString()}")</p>
+                </div>
+                <div class="block m-2 p-4">
+                    <p><b>Услуга:</b> @($"{service.Name}, цена {service.Price.ToString("F2")}")</p>
+                </div>
+                <div class="block m-2 p-4">
+                    <p><b>Мастер:</b> @($"{master.Name} {master.LastName}")</p>
+                </div>
+            }
+        </div>
+        <div class="col-md-8 order-md-2">
+
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter]
@@ -11,4 +52,69 @@
 
     [Parameter]
     public int MasterId { get; set; }
+
+    private SalonWithOnlyAddress? salon;
+    private ServiceWIthPrice? service;
+    private Master? master;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDefaultSalon();
+        await GetSalon();
+        await GetService();
+        await GetMaster();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetDefaultSalon();
+        await GetSalon();
+        await GetService();
+        await GetMaster();
+    }
+
+    private async Task SetDefaultSalon()
+    {
+        if (SalonId <= 0)
+        {
+            await GetCurrentSalonId();
+            Navigation.NavigateTo($"client/account/appointment/salon/{SalonId}/service/{ServiceId}/master/{MasterId}/datetime");
+        }
+    }
+
+    private async Task GetCurrentSalonId()
+    {
+        var resultSalonId = await SalonService.GetSalonIdFromLocalStorage();
+        if (resultSalonId.State == ResultState.Success)
+        {
+            SalonId = resultSalonId.Value!;
+        }
+    }
+
+    private async Task GetSalon()
+    {
+        var result = await SalonService.GetSalonWithAddressById(SalonId);
+        if (result.State == ResultState.Success)
+        {
+            salon = result.Value!;
+        }
+    }
+
+    private async Task GetService()
+    {
+        var result = await ServiceService.GetServiceById(ServiceId);
+        if (result.State == ResultState.Success)
+        {
+            service = result.Value!;
+        }
+    }
+
+    private async Task GetMaster()
+    {
+        var result = await EmployeeService.GetMasterById(MasterId);
+        if (result.State == ResultState.Success)
+        {
+            master = result.Value!;
+        }
+    }
 }

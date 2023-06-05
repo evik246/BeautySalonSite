@@ -1,0 +1,154 @@
+﻿@page "/client/account/appointment/salon/{SalonId:int}/master/{MasterId:int}/service"
+@page "/client/account/appointment/salon/{SalonId:int}/master/{MasterId:int}/service/category/{CategoryId:int}"
+
+@using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.CategoryService;
+@using BeautySalonSite.Service.SalonService;
+@using BeautySalonSite.Service.ServiceService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IServiceService ServiceService
+@inject ISalonService SalonService
+@inject ICategoryService CategoryService
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Client")]
+
+<PageTitle>Выбор услуги в записи</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Выбор услуги</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                Шось
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="row mb-5">
+                <div class="pb-3 mb-1">
+                    <h3>Категории услуг</h3>
+                </div>
+                <div class="d-flex flex-wrap">
+                    @if (categories != null && categories.Any())
+                    {
+                        @foreach (var category in categories)
+                        {
+                            <div class="m-1 mr-3 mb-3">
+                                <NavLink class="btn btn-outline-dark" href="@($"client/account/appointment/salon/{SalonId}/master/{MasterId}/service/category/{category.Id}")">@category.Name</NavLink>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="py-3 text-center mb-1 mt-1 px-5">
+                    <h3>Услуги</h3>
+                </div>
+                @if (services != null && services.Length > 0)
+                {
+                    @foreach (var service in services)
+                    {
+                        <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h5 class="card-title"><b>@service.Name</b></h5>
+                                </div>
+                                <p class="card-text mt-4"><b>Время выполнения:</b> @service.ExecutionTime.ToString("hh\\:mm")</p>
+                                <p class="card-text"><b>Цена: </b> @service.Price.ToString("F2")</p>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <a href="" class="btn btn-warning mt-1">Записаться</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center">Нет доступных услуг.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int SalonId { get; set; }
+
+    [Parameter]
+    public int MasterId { get; set; }
+
+    [Parameter]
+    public int CategoryId { get; set; }
+
+    private Paging paging = new() { PageSize = 40 };
+
+    private ServiceWithoutCategory[]? services;
+    private Category[]? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDefaultSalon();
+        await GetCategories();
+        SetDefaultCategory();
+        await GetServices();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetDefaultSalon();
+        await GetCategories();
+        SetDefaultCategory();
+        await GetServices();
+    }
+
+    private void SetDefaultCategory()
+    {
+        if (categories != null && categories.Length > 0 && CategoryId <= 0)
+        {
+            CategoryId = categories.First().Id;
+            Navigation.NavigateTo($"client/account/appointment/salon/{SalonId}/master/{MasterId}/service/category/{CategoryId}");
+        }
+    }
+
+    private async Task SetDefaultSalon()
+    {
+        if (SalonId <= 0)
+        {
+            await GetCurrentSalonId();
+            Navigation.NavigateTo($"client/account/appointment/salon/{SalonId}/master/{MasterId}/service/category/{CategoryId}");
+        }
+    }
+
+    private async Task GetCurrentSalonId()
+    {
+        var resultSalonId = await SalonService.GetSalonIdFromLocalStorage();
+        if (resultSalonId.State == ResultState.Success)
+        {
+            SalonId = resultSalonId.Value!;
+        }
+    }
+
+    private async Task GetServices()
+    {
+        var resultServices = await ServiceService.GetServicesByCategory(SalonId, CategoryId, paging);
+        if (resultServices.State == ResultState.Success)
+        {
+            services = resultServices.Value!.ToArray();
+        }
+    }
+
+    private async Task GetCategories()
+    {
+        var resultCategories = await CategoryService.GetCategories(SalonId);
+        if (resultCategories.State == ResultState.Success)
+        {
+            categories = resultCategories.Value!.ToArray();
+        }
+    }
+}

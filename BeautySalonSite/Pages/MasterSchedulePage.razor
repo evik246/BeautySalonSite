@@ -1,0 +1,76 @@
+﻿@page "/master/account/schedule"
+
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.ScheduleModels;
+@using BeautySalonSite.Service.ScheduleService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IScheduleService ScheduleService
+
+@attribute [Authorize(Roles = "Master")]
+
+<PageTitle>Расписание</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <MasterNavMenu></MasterNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-4 my-1 px-2">Мое расписание</h4>
+                    @if (schedule != null)
+                    {
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>День недели</th>
+                                    <th>Время начала</th>
+                                    <th>Время окончания</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in schedule)
+                                {
+                                    <tr>
+                                        <td>@item.Weekday.GetDescription()</td>
+                                        <td>@item.StartTime</td>
+                                        <td>@item.EndTime</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p>Загрузка расписания...</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private MasterSchedule[]? schedule;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMasterSchedule();
+    }
+
+    private async Task GetMasterSchedule()
+    {
+        var result = await ScheduleService.GetMasterSchedule();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            schedule = result.Value!.ToArray();
+        }
+    }
+}

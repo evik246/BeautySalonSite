@@ -7,5 +7,6 @@ namespace BeautySalonSite.Service.ScheduleService
     {
         Task<Result<IEnumerable<MasterWorkingDay>>> GetMasterWorkingDays(int masterId, DateOnly startDate, DateOnly endDate);
         Task<Result<IEnumerable<MasterAvailableSlot>>> GetMasterAvailableSlots(int masterId, int serviceId, DateOnly date);
+        Task<Result<IEnumerable<MasterSchedule>>> GetMasterSchedule();
     }
 }

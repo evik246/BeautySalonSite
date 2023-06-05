@@ -60,5 +60,17 @@ namespace BeautySalonSite.Service.SalonService
                 await _localStorage.SetItemAsync(_storageitemName, salonId);
             }
         }
+
+        public async Task<Result<SalonWithOnlyAddress>> GetSalonWithAddressById(int salonId)
+        {
+            var salon = await _httpClient.GetFromJsonAsync<SalonWithOnlyAddress>($"salon/{salonId}");
+
+            if (salon is not null)
+            {
+                return new Result<SalonWithOnlyAddress>(salon);
+            }
+
+            return new Result<SalonWithOnlyAddress>(new NotFoundException());
+        }
     }
 }

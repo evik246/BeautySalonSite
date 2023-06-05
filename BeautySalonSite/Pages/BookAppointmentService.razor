@@ -4,6 +4,7 @@
 @using BeautySalonSite.Models.CategoryModels;
 @using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.SalonModels;
 @using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.CategoryService;
 @using BeautySalonSite.Service.EmployeeService;
@@ -27,10 +28,13 @@
     </div>
     <div class="row">
         <div class="col-md-4 order-md-1 mb-4">
-            @if (master != null)
+            @if (master != null && salon != null)
             {
-                <div class="block m-1 p-4">
-                    <p><b>1. Мастер:</b> @($"{master.Name} {master.LastName}")</p>
+                <div class="block m-2 p-4">
+                    <p><b>Салон:</b> @($"{salon.ToString()}")</p>
+                </div>
+                <div class="block m-2 p-4">
+                    <p><b>Мастер:</b> @($"{master.Name} {master.LastName}")</p>
                 </div>
             }
         </div>
@@ -104,23 +108,35 @@
     private ServiceWithoutCategory[]? services;
     private Category[]? categories;
     private Master? master;
+    private SalonWithOnlyAddress? salon;
 
     protected override async Task OnInitializedAsync()
     {
-        await GetMaster();
         await SetDefaultSalon();
-        await GetCategories();
+        await GetSalon();
+        await GetMaster();
         SetDefaultCategory();
+        await GetCategories();
         await GetServices();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await GetMaster();
         await SetDefaultSalon();
-        await GetCategories();
+        await GetSalon();
+        await GetMaster();
         SetDefaultCategory();
+        await GetCategories();
         await GetServices();
+    }
+
+    private async Task GetSalon()
+    {
+        var result = await SalonService.GetSalonWithAddressById(SalonId);
+        if (result.State == ResultState.Success)
+        {
+            salon = result.Value!;
+        }
     }
 
     private void SetDefaultCategory()

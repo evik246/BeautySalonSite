@@ -7,6 +7,7 @@ namespace BeautySalonSite.Service.SalonService
     {
         Task<Result<int>> GetSalonIdFromLocalStorage();
         Task<Result<IEnumerable<SalonWithOnlyAddress>>> GetSalonsWithAddress();
+        Task<Result<SalonWithOnlyAddress>> GetSalonWithAddressById(int salonId);
         Task SetSalonIdInLocalStorage(int salonId);
         Task RemoveSalonIdFromLocalStorage();
     }

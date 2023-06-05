@@ -1,0 +1,14 @@
+﻿@page "/client/account/appointment/salon/{SalonId:int}/service/{ServiceId:int}/master/{MasterId:int}/datetime"
+
+<h3>BookAppointmentDateTime</h3>
+
+@code {
+    [Parameter]
+    public int SalonId { get; set; }
+
+    [Parameter]
+    public int ServiceId { get; set; }
+
+    [Parameter]
+    public int MasterId { get; set; }
+}

@@ -2,6 +2,7 @@
 
 @using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.SalonModels;
 @using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
@@ -23,10 +24,13 @@
     </div>
     <div class="row">
         <div class="col-md-4 order-md-1 mb-4">
-            @if (service != null)
+            @if (service != null && salon != null)
             {
-                <div class="block m-1 p-4">
-                    <p><b>1. Услуга:</b> @($"{service.Name}, цена {service.Price.ToString("F2")}")</p>
+                <div class="block m-2 p-4">
+                    <p><b>Салон:</b> @($"{salon.ToString()}")</p>
+                </div>
+                <div class="block m-2 p-4">
+                    <p><b>Услуга:</b> @($"{service.Name}, цена {service.Price.ToString("F2")}")</p>
                 </div>
             }
         </div>
@@ -81,18 +85,21 @@
 
     private Master[]? masters;
     private ServiceWIthPrice? service;
+    private SalonWithOnlyAddress? salon;
 
     protected override async Task OnInitializedAsync()
     {
-        await GetService();
         await SetDefaultSalon();
+        await GetSalon();
+        await GetService();
         await GetMasters();
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await GetService();
         await SetDefaultSalon();
+        await GetSalon();
+        await GetService();
         await GetMasters();
     }
 
@@ -102,6 +109,15 @@
         {
             await GetCurrentSalonId();
             Navigation.NavigateTo($"salon/{SalonId}/master");
+        }
+    }
+
+    private async Task GetSalon()
+    {
+        var result = await SalonService.GetSalonWithAddressById(SalonId);
+        if (result.State == ResultState.Success)
+        {
+            salon = result.Value!;
         }
     }
 

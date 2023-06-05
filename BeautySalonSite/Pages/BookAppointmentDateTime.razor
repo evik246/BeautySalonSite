@@ -56,8 +56,9 @@
                                 if (isActiveDate)
                                 {
                                     var workingDay = workingDays.First(d => d.Date == date);
+                                    var tempDate = date;
                                     <div class="text-center d-flex flex-column align-items-center">
-                                        <button class="btn btn-warning m-1" @onclick="(() => GetAvailableSlots(date))">@date.Day</button>
+                                        <button class="btn btn-warning m-1" @onclick="(() => GetAvailableSlots(tempDate))">@date.Day</button>
                                         @if (workingDay.StartTime != null && workingDay.EndTime != null)
                                         {
                                             <p class="m-0">
@@ -83,6 +84,24 @@
             }
 
             <div class="block p-4 mb-3">
+                @if (slots != null && slots.Length > 0)
+                {
+                    <h5 class="text-center">Свободное время</h5>
+                    <p class="text-center mb-4">на @selectedDate</p>
+                    <div class="d-flex flex-wrap justify-content-center">
+                        @foreach (var slot in slots)
+                        {
+                            <button class="btn btn-light m-1" @onclick="(() => SelectSlot(slot))">@($"{slot.StartTime:HH:mm}") - @($"{slot.EndTime:HH:mm}")</button>
+                        }
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button class="btn btn-primary" @onclick="BookAppointment" disabled="@(selectedTime == null)">Записаться</button>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center">Нет доступных слотов в выбранную дату</p>
+                }
 
             </div>
         </div>
@@ -105,6 +124,9 @@
 
     private DateOnly startDate;
     private DateOnly endDate;
+    private DateOnly tempStartDate;
+
+    private TimeOnly? selectedTime;
     private DateOnly selectedDate;
 
     private MasterWorkingDay[]? workingDays;
@@ -112,7 +134,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        selectedDate = DateOnly.FromDateTime(DateTime.Today);
+        tempStartDate = DateOnly.FromDateTime(DateTime.Today);
         SetDates();
         await SetDefaultSalon();
         await GetSalon();
@@ -123,7 +145,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        selectedDate = DateOnly.FromDateTime(DateTime.Today);
+        tempStartDate = DateOnly.FromDateTime(DateTime.Today);
         SetDates();
         await SetDefaultSalon();
         await GetSalon();
@@ -132,23 +154,34 @@
         await GetMasterWorkingDays();
     }
 
+    private void SelectSlot(MasterAvailableSlot slot)
+    {
+        selectedTime = slot.StartTime;
+    }
+
+    private async Task BookAppointment()
+    {
+        // Логика для записи клиента на выбранный слот
+    }
+
     private async Task ChangeWeek(int weekOffset)
     {
-        selectedDate = selectedDate.AddDays(weekOffset * 7);
+        tempStartDate = tempStartDate.AddDays(weekOffset * 7);
         SetDates();
         await GetMasterWorkingDays();
     }
 
-
     private void SetDates()
     {
-        startDate = selectedDate;
+        startDate = tempStartDate;
         endDate = startDate.AddDays(6);
     }
 
     private async Task GetAvailableSlots(DateOnly date)
     {
         selectedDate = date;
+        await GetMasterWorkingDays();
+
         var result = await ScheduleService.GetMasterAvailableSlots(MasterId, ServiceId, selectedDate);
         if (result.State == ResultState.Success)
         {
@@ -162,15 +195,6 @@
         if (result.State == ResultState.Success)
         {
             workingDays = result.Value!.ToArray();
-        }
-    }
-
-    private async Task GetAvailableSlots()
-    {
-        var result = await ScheduleService.GetMasterAvailableSlots(MasterId, ServiceId, selectedDate);
-        if (result.State == ResultState.Success)
-        {
-            slots = result.Value!.ToArray();
         }
     }
 

@@ -1,10 +1,15 @@
 ﻿@page "/client/account/appointment/salon/{SalonId:int}/service/{ServiceId:int}/master/{MasterId:int}/datetime"
 
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.AppointmentModels;
 @using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Models.SalonModels;
 @using BeautySalonSite.Models.ScheduleModels;
 @using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.AppointmentService;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
 @using BeautySalonSite.Service.ScheduleService;
@@ -15,6 +20,7 @@
 @inject ISalonService SalonService
 @inject IEmployeeService EmployeeService
 @inject IScheduleService ScheduleService
+@inject IAppointmentService AppointmentService
 @inject NavigationManager Navigation
 
 @attribute [Authorize(Roles = "Client")]
@@ -38,9 +44,22 @@
                 <div class="block m-2 p-4">
                     <p><b>Мастер:</b> @($"{master.Name} {master.LastName}")</p>
                 </div>
+                @if (IsDateTimeSelected)
+                {
+                    <div class="block m-2 p-4">
+                        <p><b>Дата и время:</b> @($"{appointment.Date.ToString("g")}")</p>
+                    </div>
+                }
             }
         </div>
         <div class="col-md-8 order-md-2">
+            @if (error is not null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @error.Message
+                </div>
+            }
+
             @if (workingDays != null && workingDays.Length > 0)
             {
                 <div class="block p-4 mb-3">
@@ -95,14 +114,13 @@
                         }
                     </div>
                     <div class="d-flex justify-content-end mt-3">
-                        <button class="btn btn-primary" @onclick="BookAppointment" disabled="@(selectedTime == null)">Записаться</button>
+                        <button type="submit" class="btn btn-primary" @onclick="BookAppointment" disabled="@(selectedTime == null)">Записаться</button>
                     </div>
                 }
                 else
                 {
                     <p class="text-center">Нет доступных слотов в выбранную дату</p>
                 }
-
             </div>
         </div>
     </div>
@@ -118,6 +136,8 @@
     [Parameter]
     public int MasterId { get; set; }
 
+    private Error? error;
+
     private SalonWithOnlyAddress? salon;
     private ServiceWIthPrice? service;
     private Master? master;
@@ -126,8 +146,12 @@
     private DateOnly endDate;
     private DateOnly tempStartDate;
 
-    private TimeOnly? selectedTime;
+    private TimeOnly selectedTime;
     private DateOnly selectedDate;
+
+    private bool IsDateTimeSelected = false;
+
+    private CustomerAppointmentCreate appointment = new();
 
     private MasterWorkingDay[]? workingDays;
     private MasterAvailableSlot[]? slots;
@@ -156,12 +180,40 @@
 
     private void SelectSlot(MasterAvailableSlot slot)
     {
+        IsDateTimeSelected = true;
         selectedTime = slot.StartTime;
+        appointment = new()
+        {
+            ServiceId = ServiceId,
+            EmployeeId = MasterId,
+            Date = new DateTime(selectedDate.Year, selectedDate.Month, selectedDate.Day, selectedTime.Hour, selectedTime.Minute, 0)
+        };
     }
 
     private async Task BookAppointment()
     {
-        // Логика для записи клиента на выбранный слот
+        if (!IsDateTimeSelected)
+        {
+            error = new() { Message = "Выберите дату и время." };
+            return;
+        }
+
+        var result = await AppointmentService.MakeCustomerAppointment(appointment);
+
+        if (result.State == ResultState.Success)
+        {
+            Navigation.NavigateTo("client/account/appointment");
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            if (result.Exception is ConflictException)
+            {
+                error = new() { Message = "Неправильно выбрано дата и время." };
+                return;
+            }
+            error = new() { Message = "Что-то пошло не так." };
+        }
     }
 
     private async Task ChangeWeek(int weekOffset)

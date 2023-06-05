@@ -1,8 +1,11 @@
 ﻿using BeautySalonSite.Models.AppointmentModels;
+using BeautySalonSite.Models.ErrorModels;
 using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using System.Net.Http.Json;
-using System.Net.NetworkInformation;
+using System.Reflection;
+using System.Text;
+using System.Text.Json;
 
 namespace BeautySalonSite.Service.AppointmentService
 {
@@ -51,6 +54,30 @@ namespace BeautySalonSite.Service.AppointmentService
                 return new Result<string>(new NotFoundException());
             }
             return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> MakeCustomerAppointment(CustomerAppointmentCreate request)
+        {
+            string jsonRequest = JsonSerializer.Serialize(request);
+
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("appointment/customer/account", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            var error = await response.Content.ReadFromJsonAsync<Error>();
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                if (error != null)
+                {
+                    return new Result<string>(new ConflictException(error.Message));
+                }
+            }
+
+            return new Result<string>(new ServerException(error.Message));
         }
     }
 }

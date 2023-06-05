@@ -2,7 +2,7 @@
 
 namespace BeautySalonSite.Models.SalonModels
 {
-    public class SalonWithOnlyAddress
+    public class SalonWithAddressAndCity
     {
         public int Id { get; set; }
 

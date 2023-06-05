@@ -1,5 +1,9 @@
 ﻿@page "/master/account"
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Service.EmployeeService;
 @using Microsoft.AspNetCore.Authorization;
+
+@inject IEmployeeService EmployeeService
 
 @attribute [Authorize(Roles = "Master")]
 
@@ -12,13 +16,42 @@
     <div class="row">
         <div class="col-md-4 order-md-1 mb-4">
             <div class="block m-1 p-4">
-                меню
+                <MasterNavMenu></MasterNavMenu>
             </div>
         </div>
         <div class="col-md-8 order-md-2">
             <div class="block m-1 p-4">
-                <div class="mb-5 mt-2">
-                    <h4>Личная информация</h4>
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1 px-2">Личная информация</h4>
+                    @if (master is not null)
+                    {
+                        <div class="mt-4">
+                            <div class="mb-4 d-flex justify-content-start align-content-center">
+                                <div class="me-3">
+                                    <img src="@(master.PhotoPath == null? "/img/blank-profile.jpg" : master.PhotoPath)"
+                                         class="rounded profile-photo" alt="Фотография мастера" />
+                                </div>
+                                <div>
+                                    <p>@master.ToString()</p>
+                                    @if (!string.IsNullOrEmpty(master.Specialization))
+                                    {
+                                        <p>@master.Specialization</p>
+                                    }
+                                </div>
+                            </div>
+                            <div>
+                                <p><b>Почта:</b> @master.Email</p>
+                                @if (master.Salon != null)
+                                {
+                                    <p><b>Салон:</b> @master.Salon.Address</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p>Что-то пошло не так.</p>
+                    }
                 </div>
             </div>
         </div>
@@ -26,5 +59,19 @@
 </div>
 
 @code {
+    private MasterWithPhotoAndSalon? master;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMasterAccount();
+    }
+
+    private async Task GetMasterAccount()
+    {
+        var result = await EmployeeService.GetMasterAccount();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            master = result.Value!;
+        }
+    }
 }

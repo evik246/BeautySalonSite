@@ -14,6 +14,17 @@ namespace BeautySalonSite.Service.EmployeeService
             _httpClient = httpClient;
         }
 
+        public async Task<Result<MasterWithPhotoAndSalon>> GetMasterAccount()
+        {
+            var master = await _httpClient.GetFromJsonAsync<MasterWithPhotoAndSalon>("employee/master/account");
+
+            if (master == null)
+            {
+                return new Result<MasterWithPhotoAndSalon>(new ServerException());
+            }
+            return new Result<MasterWithPhotoAndSalon>(master);
+        }
+
         public async Task<Result<Master>> GetMasterById(int masterId)
         {
             var master = await _httpClient.GetFromJsonAsync<Master>($"employee/master/{masterId}");

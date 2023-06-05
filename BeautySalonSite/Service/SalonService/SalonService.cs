@@ -33,15 +33,15 @@ namespace BeautySalonSite.Service.SalonService
             return new Result<int>(new NotFoundException());
         }
 
-        public async Task<Result<IEnumerable<SalonWithOnlyAddress>>> GetSalonsWithAddress()
+        public async Task<Result<IEnumerable<SalonWithAddressAndCity>>> GetSalonsWithAddress()
         {
-            var salons = await _httpClient.GetFromJsonAsync<IEnumerable<SalonWithOnlyAddress>>("salon");
+            var salons = await _httpClient.GetFromJsonAsync<IEnumerable<SalonWithAddressAndCity>>("salon");
 
             if (salons is null)
             {
-                return new Result<IEnumerable<SalonWithOnlyAddress>>(new ServerException());
+                return new Result<IEnumerable<SalonWithAddressAndCity>>(new ServerException());
             }
-            return new Result<IEnumerable<SalonWithOnlyAddress>>(salons);
+            return new Result<IEnumerable<SalonWithAddressAndCity>>(salons);
         }
 
         public async Task RemoveSalonIdFromLocalStorage()
@@ -61,16 +61,16 @@ namespace BeautySalonSite.Service.SalonService
             }
         }
 
-        public async Task<Result<SalonWithOnlyAddress>> GetSalonWithAddressById(int salonId)
+        public async Task<Result<SalonWithAddressAndCity>> GetSalonWithAddressById(int salonId)
         {
-            var salon = await _httpClient.GetFromJsonAsync<SalonWithOnlyAddress>($"salon/{salonId}");
+            var salon = await _httpClient.GetFromJsonAsync<SalonWithAddressAndCity>($"salon/{salonId}");
 
             if (salon is not null)
             {
-                return new Result<SalonWithOnlyAddress>(salon);
+                return new Result<SalonWithAddressAndCity>(salon);
             }
 
-            return new Result<SalonWithOnlyAddress>(new NotFoundException());
+            return new Result<SalonWithAddressAndCity>(new NotFoundException());
         }
     }
 }

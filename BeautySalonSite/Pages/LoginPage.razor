@@ -52,7 +52,19 @@
 
         if (result.State == Models.Other.ResultState.Success)
         {
-            Navigation.NavigateTo("client/account", forceLoad: false);
+            var result2 = await AuthService.GetUserRole();
+            if (result2.State == Models.Other.ResultState.Success)
+            {
+                if (result2.Value!.Equals("Client"))
+                {
+                    Navigation.NavigateTo("client/account", forceLoad: false);
+                }
+
+                if (result2.Value!.Equals("Master"))
+                {
+                    Navigation.NavigateTo("master/account", forceLoad: false);
+                }
+            }
         }
 
         if (result.State == Models.Other.ResultState.Failure)

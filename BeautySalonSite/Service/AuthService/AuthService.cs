@@ -6,6 +6,7 @@ using BeautySalonSite.Models.UserModels;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
+using System.Security.Claims;
 
 namespace BeautySalonSite.Service.AuthService
 {
@@ -22,6 +23,20 @@ namespace BeautySalonSite.Service.AuthService
             _localStorage = localStorage;
             _authStateProvider = authStateProvider;
             _httpClient = httpClient;
+        }
+
+        public async Task<Result<string>> GetUserRole()
+        {
+            var state = await _authStateProvider.GetAuthenticationStateAsync();
+            var role = state.User.Claims
+                .Where(c => c.Type.Equals("role"))
+                .Select(c => c.Value)
+                .First();
+            if (role == null)
+            {
+                return new Result<string>(new NotFoundException());
+            }
+            return new Result<string>(role);
         }
 
         public async Task<Result<string>> Login(UserLogin request)

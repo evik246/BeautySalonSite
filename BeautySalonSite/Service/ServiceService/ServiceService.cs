@@ -14,7 +14,19 @@ namespace BeautySalonSite.Service.ServiceService
             _httpClient = httpClient;
         }
 
-        public async Task<Result<IEnumerable<ServiceWithoutCategory>>> GetServicesByCategory(int salonId, int categoryId, Paging paging)
+        public async Task<Result<IEnumerable<ServiceWithoutCategory>>> GetMasterServicesByCategory(int masterId, int categoryId, Paging paging)
+        {
+            var services = await _httpClient.GetFromJsonAsync<IEnumerable<ServiceWithoutCategory>>($"Service/master/{masterId}/category/{categoryId}?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (services == null)
+            {
+                return new Result<IEnumerable<ServiceWithoutCategory>>(new ServerException());
+            }
+
+            return new Result<IEnumerable<ServiceWithoutCategory>>(services);
+        }
+
+        public async Task<Result<IEnumerable<ServiceWithoutCategory>>> GetSalonServicesByCategory(int salonId, int categoryId, Paging paging)
         {
             var services = await _httpClient.GetFromJsonAsync<IEnumerable<ServiceWithoutCategory>>($"Service/salon/{salonId}/category/{categoryId}?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
 

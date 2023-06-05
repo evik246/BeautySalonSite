@@ -122,7 +122,7 @@
 
     private async Task GetServices()
     {
-        var resultServices = await ServiceService.GetServicesByCategory(SalonId, CategoryId, paging);
+        var resultServices = await ServiceService.GetSalonServicesByCategory(SalonId, CategoryId, paging);
         if (resultServices.State == ResultState.Success)
         {
             services = resultServices.Value!.ToArray();

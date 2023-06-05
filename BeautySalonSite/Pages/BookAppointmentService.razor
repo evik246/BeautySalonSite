@@ -2,9 +2,11 @@
 @page "/client/account/appointment/salon/{SalonId:int}/master/{MasterId:int}/service/category/{CategoryId:int}"
 
 @using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.CategoryService;
+@using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
 @using BeautySalonSite.Service.ServiceService;
 @using Microsoft.AspNetCore.Authorization;
@@ -12,6 +14,7 @@
 @inject IServiceService ServiceService
 @inject ISalonService SalonService
 @inject ICategoryService CategoryService
+@inject IEmployeeService EmployeeService
 @inject NavigationManager Navigation
 
 @attribute [Authorize(Roles = "Client")]
@@ -24,9 +27,12 @@
     </div>
     <div class="row">
         <div class="col-md-4 order-md-1 mb-4">
-            <div class="block m-1 p-4">
-                Шось
-            </div>
+            @if (master != null)
+            {
+                <div class="block m-1 p-4">
+                    <p><b>1. Мастер:</b> @($"{master.Name} {master.LastName}")</p>
+                </div>
+            }
         </div>
         <div class="col-md-8 order-md-2">
             <div class="row mb-5">
@@ -62,7 +68,7 @@
                                 <p class="card-text"><b>Цена: </b> @service.Price.ToString("F2")</p>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <a href="" class="btn btn-warning mt-1">Записаться</a>
+                                <a href="" class="btn btn-warning mt-1">Выбрать</a>
                             </div>
                         </div>
                     }
@@ -90,9 +96,11 @@
 
     private ServiceWithoutCategory[]? services;
     private Category[]? categories;
+    private Master? master;
 
     protected override async Task OnInitializedAsync()
     {
+        await GetMaster();
         await SetDefaultSalon();
         await GetCategories();
         SetDefaultCategory();
@@ -101,6 +109,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        await GetMaster();
         await SetDefaultSalon();
         await GetCategories();
         SetDefaultCategory();
@@ -149,6 +158,15 @@
         if (resultCategories.State == ResultState.Success)
         {
             categories = resultCategories.Value!.ToArray();
+        }
+    }
+
+    private async Task GetMaster()
+    {
+        var result = await EmployeeService.GetMasterById(MasterId);
+        if (result.State == ResultState.Success)
+        {
+            master = result.Value!;
         }
     }
 }

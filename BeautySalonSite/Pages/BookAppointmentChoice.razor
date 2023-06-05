@@ -1,0 +1,58 @@
+﻿@page "/client/account/appointment/salon/{SalonId:int}/choice"
+@page "/client/account/appointment/choice"
+
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Service.SalonService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject ISalonService SalonService
+@inject NavigationManager Navigation
+
+@attribute [Authorize(Roles = "Client")]
+
+<PageTitle>Услуги или мастера</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Выберите сначала, что хотите посмотреть</h2>
+    </div>
+    <div class="row">
+        <div class="d-flex justify-content-center">
+            <a href="@($"/salon/{SalonId}/service")" class="m-3 btn btn-warning">Услуги</a>
+            <a href="@($"/salon/{SalonId}/master")" class="m-3 btn btn-warning">Мастера</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int SalonId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetDefaultSalon();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await SetDefaultSalon();
+    }
+
+    private async Task SetDefaultSalon()
+    {
+        if (SalonId <= 0)
+        {
+            await GetCurrentSalonId();
+            Navigation.NavigateTo($"client/account/appointment/salon/{SalonId}/choice");
+        }
+    }
+
+    private async Task GetCurrentSalonId()
+    {
+        var resultSalonId = await SalonService.GetSalonIdFromLocalStorage();
+        if (resultSalonId.State == ResultState.Success)
+        {
+            SalonId = resultSalonId.Value!;
+        }
+    }
+}

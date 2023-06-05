@@ -58,8 +58,6 @@ namespace BeautySalonSite.Service.AppointmentService
 
         public async Task<Result<string>> MakeCustomerAppointment(CustomerAppointmentCreate request)
         {
-            string jsonRequest = JsonSerializer.Serialize(request);
-
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync("appointment/customer/account", request);
 
             if (response.IsSuccessStatusCode)
@@ -77,7 +75,7 @@ namespace BeautySalonSite.Service.AppointmentService
                 }
             }
 
-            return new Result<string>(new ServerException(error.Message));
+            return new Result<string>(new ServerException());
         }
     }
 }

@@ -23,11 +23,27 @@
         <div class="col-md-8 order-md-2">
             <div class="block m-1 p-4">
                 <div class="mb-2 mt-2">
-                    <h4 class="pb-3 my-1 px-2">Личная информация</h4>
+                    <h4 class="pb-3 my-3 px-2">Успеваемость</h4>
+
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label for="startDate">Дата начала</label>
+                            <input type="date" class="form-control" id="startDate" @bind="dateRange.StartDate" />
+                        </div>
+                        <div class="col-md-6 my-2">
+                            <label for="endDate">Дата окончания</label>
+                            <input type="date" class="form-control" id="endDate" @bind="dateRange.EndDate" />
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary my-3" @onclick="GetStatistics">Получить статистику</button>
+
                     @if (appointmentCount != null && income != null)
                     {
-                        <p><b>Количество оказанных услуг:</b> @appointmentCount</p>
-                        <p><b>Доход за оказанные услуги:</b> @income</p>
+                        <div class="mt-4">
+                            <p><b>Количество оказанных услуг:</b> @appointmentCount</p>
+                            <p><b>Доход за оказанные услуги:</b> @income</p>
+                        </div>
                     }
                     else
                     {
@@ -43,7 +59,22 @@
     private int? appointmentCount;
     private decimal? income;
 
-    private DateRange dateRange = new();
+    private DateRange dateRange = new() 
+    { 
+        StartDate = DateOnly.FromDateTime(DateTime.Today.AddMonths(-1)),
+        EndDate = DateOnly.FromDateTime(DateTime.Today)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetStatistics();
+    }
+
+    private async Task GetStatistics()
+    {
+        await GetAppointmentCount();
+        await GetIncome();
+    }
 
     private async Task GetAppointmentCount()
     {

@@ -145,5 +145,38 @@ namespace BeautySalonSite.Service.AppointmentService
             }
             return new Result<IEnumerable<ManagerAppointment>>(appointments);
         }
+
+        public async Task<Result<IEnumerable<AppointmentWithoutStatus>>> GetManagerActiveAppointments(Paging paging)
+        {
+            var appointments = await _httpClient.GetFromJsonAsync<IEnumerable<AppointmentWithoutStatus>>($"appointment/active/manager/account?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (appointments == null)
+            {
+                return new Result<IEnumerable<AppointmentWithoutStatus>>(new ServerException());
+            }
+            return new Result<IEnumerable<AppointmentWithoutStatus>>(appointments);
+        }
+
+        public async Task<Result<IEnumerable<AppointmentWithoutStatus>>> GetManagerCompletedAppointments(Paging paging)
+        {
+            var appointments = await _httpClient.GetFromJsonAsync<IEnumerable<AppointmentWithoutStatus>>($"appointment/completed/manager/account?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (appointments == null)
+            {
+                return new Result<IEnumerable<AppointmentWithoutStatus>>(new ServerException());
+            }
+            return new Result<IEnumerable<AppointmentWithoutStatus>>(appointments);
+        }
+
+        public async Task<Result<IEnumerable<AppointmentWithoutStatus>>> GetManagerUncompletedAppointments(Paging paging)
+        {
+            var appointments = await _httpClient.GetFromJsonAsync<IEnumerable<AppointmentWithoutStatus>>($"appointment/uncompleted/manager/account?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (appointments == null)
+            {
+                return new Result<IEnumerable<AppointmentWithoutStatus>>(new ServerException());
+            }
+            return new Result<IEnumerable<AppointmentWithoutStatus>>(appointments);
+        }
     }
 }

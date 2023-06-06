@@ -24,7 +24,18 @@
         <div class="col-md-8 order-md-2">
             <div class="m-1">
                 <div class="block p-4">
-                    <h4 class="mt-2">Записи</h4>
+                    <h4 class="my-2">Записи</h4>
+                    <ul class="mt-4 nav nav-pills nav-justified">
+                        <li class="nav-item">
+                            <button class="nav-link @(tab == AppointmentTab.Upcoming? "active" : "")" @onclick="() => SwitchTab(AppointmentTab.Upcoming)">Предстоящие</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(tab == AppointmentTab.Completed? "active" : "")" @onclick="() => SwitchTab(AppointmentTab.Completed)">Завершенные</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(tab == AppointmentTab.Incomplete? "active" : "")" @onclick="() => SwitchTab(AppointmentTab.Incomplete)">Невыполненные</button>
+                        </li>
+                    </ul>
                 </div>
                 <div class="py-3 text-center mb-1 mt-4">
                     <h4>Записи</h4>
@@ -44,7 +55,6 @@
                                 <p class="card-text"><b>Клиент:</b> @appointment.Customer.Name</p>
                                 <p class="card-text"><b>Услуга:</b> @appointment.Service.Name</p>
                                 <p class="card-text"><b>Цена:</b> @appointment.Price</p>
-                                <p class="card-text"><b>Статус:</b> @appointment.Status.GetDescription()</p>
                             </div>
                             <div class="d-flex justify-content-end">
                                 <a class="btn btn-warning mt-1">Посмотреть</a>
@@ -80,22 +90,76 @@
     private Paging paging = new() { PageSize = 15 };
     private bool hasNextPage;
 
-    private ManagerAppointment[]? appointments;
+    private AppointmentWithoutStatus[]? appointments;
+
+    private AppointmentTab tab = AppointmentTab.Upcoming;
+    private string tabName = "Предстоящие";
+
+    private enum AppointmentTab
+    {
+        Upcoming,
+        Completed,
+        Incomplete
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        appointments = await GetAppointments();
+        appointments = await LoadAppointments();
         await HasNextPage();
     }
 
-    private async Task<ManagerAppointment[]> GetAppointments()
+    private async Task SwitchTab(AppointmentTab selectedTab)
     {
-        var result = await AppointmentService.GetManagerAppointments(paging);
+        tab = selectedTab;
+        appointments = await LoadAppointments();
+        await HasNextPage();
+    }
+
+    private async Task<AppointmentWithoutStatus[]> LoadAppointments()
+    {
+        switch (tab)
+        {
+            case AppointmentTab.Upcoming:
+                tabName = "Предстоящие";
+                return await GetActive();
+            case AppointmentTab.Completed:
+                tabName = "Завершенные";
+                return await GetCompleted();
+            case AppointmentTab.Incomplete:
+                tabName = "Невыполненные";
+                return await GetUncompleted();
+        }
+        return new AppointmentWithoutStatus[0];
+    }
+
+    private async Task<AppointmentWithoutStatus[]> GetActive()
+    {
+        var result = await AppointmentService.GetManagerActiveAppointments(paging);
         if (result.State == ResultState.Success)
         {
             return result.Value!.ToArray();
         }
-        return new ManagerAppointment[0];
+        return new AppointmentWithoutStatus[0];
+    }
+
+    private async Task<AppointmentWithoutStatus[]> GetCompleted()
+    {
+        var result = await AppointmentService.GetManagerCompletedAppointments(paging);
+        if (result.State == ResultState.Success)
+        {
+            return result.Value!.ToArray();
+        }
+        return new AppointmentWithoutStatus[0];
+    }
+
+    private async Task<AppointmentWithoutStatus[]> GetUncompleted()
+    {
+        var result = await AppointmentService.GetManagerUncompletedAppointments(paging);
+        if (result.State == ResultState.Success)
+        {
+            return result.Value!.ToArray();
+        }
+        return new AppointmentWithoutStatus[0];
     }
 
     private async Task PreviousPage()
@@ -103,7 +167,7 @@
         if (paging.PageNumber > 1)
         {
             paging.PageNumber--;
-            appointments = await GetAppointments();
+            appointments = await LoadAppointments();
         }
         await HasNextPage();
     }
@@ -111,14 +175,14 @@
     private async Task NextPage()
     {
         paging.PageNumber++;
-        appointments = await GetAppointments();
+        appointments = await LoadAppointments();
         await HasNextPage();
     }
 
     private async Task HasNextPage()
     {
         paging.PageNumber++;
-        var result = await GetAppointments();
+        var result = await LoadAppointments();
         paging.PageNumber--;
 
         hasNextPage = !(result is null || !result.Any());

@@ -96,12 +96,33 @@
     private MasterSchedule[]? schedule;
     private MasterWithEmail? master;
 
+    private MasterScheduleChange scheduleChange = new();
+    private MasterScheduleCreate scheduleCreate = new();
+
     protected override async Task OnInitializedAsync()
     {
         if (MasterId > 0)
         {
             await GetMaster();
             await GetMasterSchedule();
+        }
+    }
+
+    private async Task ChangeMasterSchedule(int scheduleId)
+    {
+        var result = await ScheduleService.ChangeManagerMasterSchedule(scheduleId, scheduleChange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            // успешно изменена часть расписания мастера
+        }
+    }
+
+    private async Task CreateMasterSchedule()
+    {
+        var result = await ScheduleService.CreateManagerMasterSchedule(MasterId, scheduleCreate);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            // успешно создано еще расписание мастеру
         }
     }
 

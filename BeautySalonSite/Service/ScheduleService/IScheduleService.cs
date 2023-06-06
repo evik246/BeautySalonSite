@@ -9,5 +9,7 @@ namespace BeautySalonSite.Service.ScheduleService
         Task<Result<IEnumerable<MasterAvailableSlot>>> GetMasterAvailableSlots(int masterId, int serviceId, DateOnly date);
         Task<Result<IEnumerable<MasterSchedule>>> GetMasterSchedule();
         Task<Result<IEnumerable<MasterSchedule>>> GetManagerMasterSchedule(int masterId);
+        Task<Result<string>> ChangeManagerMasterSchedule(int scheduleId, MasterScheduleChange request);
+        Task<Result<string>> CreateManagerMasterSchedule(int masterId, MasterScheduleCreate request);
     }
 }

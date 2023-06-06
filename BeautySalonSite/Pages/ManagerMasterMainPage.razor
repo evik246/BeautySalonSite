@@ -2,6 +2,8 @@
 
 @using BeautySalonSite.Extensions;
 @using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.ScheduleModels;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.ScheduleService;
@@ -63,6 +65,7 @@
                                 <th>День недели</th>
                                 <th>Время начала</th>
                                 <th>Время окончания</th>
+                                <th></th> <!-- Заголовок для кнопок редактирования и удаления -->
                             </tr>
                         </thead>
                         <tbody>
@@ -72,18 +75,59 @@
                                     <td>@item.Weekday.GetDescription()</td>
                                     <td>@item.StartTime</td>
                                     <td>@item.EndTime</td>
+                                    <td>
+                                        <!-- Кнопка редактирования -->
+                                        <button class="btn btn-primary" @onclick="() => ChangeMasterSchedule(item.Id)">Редактировать</button>
+                                        <!-- Кнопка удаления -->
+                                        <button class="btn btn-danger" @onclick="() => DeleteMasterSchedule(item.Id)">Удалить</button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                    <div class="mt-4 d-flex justify-content-end">
-                        <a href="" class="btn btn-warning mt-1">Редактировать расписание</a>
-                    </div>
                 }
                 else
                 {
                     <p>Загрузка расписания...</p>
                 }
+
+                <!-- Форма для создания нового расписания мастера -->
+                <EditForm Model="@scheduleCreate" OnValidSubmit="@CreateMasterSchedule">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3 mt-5">
+                        <h4>Создать новое расписание</h4>
+                    </div>
+                    @if (error is not null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @error.Message
+                        </div>
+                    }
+                    <div class="form-group my-3">
+                        <InputSelect id="WeekDay" class="form-control" @bind-Value="@scheduleCreate.Weekday">
+                            <option value="Monday">Понедельник</option>
+                            <option value="Tuesday">Вторник</option>
+                            <option value="Wednesday">Среда</option>
+                            <option value="Thursday">Четверг</option>
+                            <option value="Friday">Пятница</option>
+                            <option value="Saturday">Суббота</option>
+                            <option value="Sunday">Воскресенье</option>
+                        </InputSelect>
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="StartTime">Время начала:</label>
+                        <input type="time" id="StartTime" class="form-control" @bind=scheduleCreate.StartTime />
+                        <ValidationMessage For="@(() => scheduleCreate.StartTime)" />
+                    </div>
+                    <div class="form-group my-2">
+                        <label for="EndTime">Время окончания:</label>
+                        <input type="time" class="form-control" id="EndTime" @bind=scheduleCreate.EndTime />
+                        <ValidationMessage For="@(() => scheduleCreate.EndTime)" />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-1">Добавить</button>
+                    </div>
+                </EditForm>
             </div>
         </div>
     </div>
@@ -99,6 +143,8 @@
     private MasterScheduleChange scheduleChange = new();
     private MasterScheduleCreate scheduleCreate = new();
 
+    private Error? error;
+
     protected override async Task OnInitializedAsync()
     {
         if (MasterId > 0)
@@ -108,12 +154,26 @@
         }
     }
 
+    private void DeleteMasterSchedule(int scheduleId)
+    {
+
+    }
+
     private async Task ChangeMasterSchedule(int scheduleId)
     {
         var result = await ScheduleService.ChangeManagerMasterSchedule(scheduleId, scheduleChange);
         if (result.State == Models.Other.ResultState.Success)
         {
-            // успешно изменена часть расписания мастера
+            error = null;
+            await GetMasterSchedule();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is OutOfTimeLimitException)
+            {
+                error = new() { Message = "Количество часов работы превышает 8 часов." };
+            }
         }
     }
 
@@ -122,12 +182,21 @@
         var result = await ScheduleService.CreateManagerMasterSchedule(MasterId, scheduleCreate);
         if (result.State == Models.Other.ResultState.Success)
         {
-            // успешно создано еще расписание мастеру
+            await GetMasterSchedule();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is OutOfTimeLimitException)
+            {
+                error = new() { Message = "Количество часов работы превышает 8 часов." };
+            }
         }
     }
 
     private async Task GetMasterSchedule()
     {
+        error = null;
         var result = await ScheduleService.GetManagerMasterSchedule(MasterId);
         if (result.State == Models.Other.ResultState.Success)
         {

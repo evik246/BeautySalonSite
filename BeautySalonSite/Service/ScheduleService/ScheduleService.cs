@@ -3,6 +3,7 @@ using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.ScheduleModels;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace BeautySalonSite.Service.ScheduleService
 {
@@ -38,23 +39,30 @@ namespace BeautySalonSite.Service.ScheduleService
 
         public async Task<Result<string>> CreateManagerMasterSchedule(int masterId, MasterScheduleCreate request)
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"schedule/manager/account/master/{masterId}", request);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                return new Result<string>("Success");
-            }
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync($"schedule/manager/account/master/{masterId}", request);
 
-            var error = await response.Content.ReadFromJsonAsync<Error>();
-
-            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
-            {
-                if (error != null && error.Message.Contains("The number of working hours exceeds the maximum limit"))
+                if (response.IsSuccessStatusCode)
                 {
-                    return new Result<string>(new OutOfTimeLimitException());
+                    return new Result<string>("Success");
                 }
+
+                var error = await response.Content.ReadFromJsonAsync<Error>();
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    if (error != null && error.Message.Contains("The number of working hours exceeds the maximum limit"))
+                    {
+                        return new Result<string>(new OutOfTimeLimitException());
+                    }
+                }
+                return new Result<string>(new ServerException());
             }
-            return new Result<string>(new ServerException());
+            catch(Exception ex)
+            {
+                return new Result<string>(new ServerException(ex.Message));
+            }
         }
 
         public async Task<Result<IEnumerable<MasterSchedule>>> GetManagerMasterSchedule(int masterId)

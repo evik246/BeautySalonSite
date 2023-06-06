@@ -1,0 +1,125 @@
+﻿@page "/manager/account/master/{MasterId:int}"
+
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ScheduleModels;
+@using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.ScheduleService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IScheduleService ScheduleService
+@inject IEmployeeService EmployeeService
+
+@attribute [Authorize(Roles = "Manager")]
+
+<PageTitle>Расписание мастера</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <ManagerNavMenu></ManagerNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @if (master is not null)
+                {
+                    <div class="mt-1 mb-5">
+                        <div class="mb-2 d-flex justify-content-start align-content-center">
+                            <div class="me-3">
+                                <img src="@(master.PhotoPath == null? "/img/blank-profile.jpg" : master.PhotoPath)"
+                                     class="rounded profile-photo" alt="Фотография мастера" />
+                            </div>
+                            <div>
+                                <p>@master.ToString()</p>
+                                @if (!string.IsNullOrEmpty(master.Specialization))
+                                {
+                                    <p>@master.Specialization</p>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <p><b>Почта:</b> @master.Email</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p>Не удалось загрузить данные мастера.</p>
+                }
+
+                <div class="mb-3 mt-5">
+                    <h4>Расписание мастера</h4>
+                </div>
+                @if (schedule != null)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>День недели</th>
+                                <th>Время начала</th>
+                                <th>Время окончания</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in schedule)
+                            {
+                                <tr>
+                                    <td>@item.Weekday.GetDescription()</td>
+                                    <td>@item.StartTime</td>
+                                    <td>@item.EndTime</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="mt-4 d-flex justify-content-end">
+                        <a href="" class="btn btn-warning mt-1">Редактировать расписание</a>
+                    </div>
+                }
+                else
+                {
+                    <p>Загрузка расписания...</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int MasterId { get; set; }
+
+    private MasterSchedule[]? schedule;
+    private MasterWithEmail? master;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (MasterId > 0)
+        {
+            await GetMaster();
+            await GetMasterSchedule();
+        }
+    }
+
+    private async Task GetMasterSchedule()
+    {
+        var result = await ScheduleService.GetManagerMasterSchedule(MasterId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            schedule = result.Value!.ToArray();
+        }
+    }
+
+    private async Task GetMaster()
+    {
+        var result = await EmployeeService.GetManagerMasterById(MasterId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            master = result.Value!;
+        }
+    }
+}

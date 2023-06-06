@@ -14,6 +14,17 @@ namespace BeautySalonSite.Service.ScheduleService
             _httpClient = httpClient;
         }
 
+        public async Task<Result<IEnumerable<MasterSchedule>>> GetManagerMasterSchedule(int masterId)
+        {
+            var schedule = await _httpClient.GetFromJsonAsync<IEnumerable<MasterSchedule>>($"schedule/manager/account/master/{masterId}");
+
+            if (schedule == null)
+            {
+                return new Result<IEnumerable<MasterSchedule>>(new ServerException());
+            }
+            return new Result<IEnumerable<MasterSchedule>>(schedule);
+        }
+
         public async Task<Result<IEnumerable<MasterAvailableSlot>>> GetMasterAvailableSlots(int masterId, int serviceId, DateOnly date)
         {
             var availableSlots = await _httpClient.GetFromJsonAsync<IEnumerable<MasterAvailableSlot>>($"schedule/timeslots/available?MasterId={masterId}&ServiceId={serviceId}&Date={date:yyyy-MM-dd}");

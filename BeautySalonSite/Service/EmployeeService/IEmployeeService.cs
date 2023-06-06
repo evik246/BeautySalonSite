@@ -9,5 +9,7 @@ namespace BeautySalonSite.Service.EmployeeService
         Task<Result<IEnumerable<Master>>> GetMastersByService(int salonId, int serviceId, Paging paging);
         Task<Result<Master>> GetMasterById(int masterId);
         Task<Result<MasterWithPhotoAndSalon>> GetMasterAccount();
+        Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMasters(Paging paging);
+        Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMastersByService(int serviceId, Paging paging);
     }
 }

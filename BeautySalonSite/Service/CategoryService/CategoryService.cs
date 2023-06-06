@@ -1,7 +1,6 @@
 ﻿using BeautySalonSite.Models.CategoryModels;
 using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
-using Blazored.LocalStorage;
 using System.Net.Http.Json;
 
 namespace BeautySalonSite.Service.CategoryService
@@ -13,6 +12,16 @@ namespace BeautySalonSite.Service.CategoryService
         public CategoryService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<Result<IEnumerable<Category>>> GetManagerCategories()
+        {
+            var categories = await _httpClient.GetFromJsonAsync<IEnumerable<Category>>("category/manager/account");
+            if (categories == null)
+            {
+                return new Result<IEnumerable<Category>>(new ServerException());
+            }
+            return new Result<IEnumerable<Category>>(categories);
         }
 
         public async Task<Result<IEnumerable<Category>>> GetMasterCategories(int masterId)

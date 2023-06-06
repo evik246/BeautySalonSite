@@ -7,5 +7,6 @@ namespace BeautySalonSite.Service.CategoryService
     {
         Task<Result<IEnumerable<Category>>> GetSalonCategories(int salonId);
         Task<Result<IEnumerable<Category>>> GetMasterCategories(int masterId);
+        Task<Result<IEnumerable<Category>>> GetManagerCategories();
     }
 }

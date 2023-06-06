@@ -1,4 +1,5 @@
-﻿using BeautySalonSite.Models.ExceptionModels;
+﻿using BeautySalonSite.Models.EmployeeModels;
+using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.ServiceModels;
 using System.Net.Http.Json;
@@ -12,6 +13,18 @@ namespace BeautySalonSite.Service.ServiceService
         public ServiceService(HttpClient httpClient)
         {
             _httpClient = httpClient;
+        }
+
+        public async Task<Result<IEnumerable<ServiceWithoutCategory>>> GetManagerServicesByCategory(int categoryId, Paging paging)
+        {
+            var services = await _httpClient.GetFromJsonAsync<IEnumerable<ServiceWithoutCategory>>($"service/manager/account/category/{categoryId}?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+
+            if (services == null)
+            {
+                return new Result<IEnumerable<ServiceWithoutCategory>>(new ServerException());
+            }
+
+            return new Result<IEnumerable<ServiceWithoutCategory>>(services);
         }
 
         public async Task<Result<IEnumerable<ServiceWithoutCategory>>> GetMasterServicesByCategory(int masterId, int categoryId, Paging paging)

@@ -11,5 +11,6 @@ namespace BeautySalonSite.Service.EmployeeService
         Task<Result<MasterWithPhotoAndSalon>> GetMasterAccount();
         Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMasters(Paging paging);
         Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMastersByService(int serviceId, Paging paging);
+        Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMastersByServiceCategory(int categoryId, Paging paging);
     }
 }

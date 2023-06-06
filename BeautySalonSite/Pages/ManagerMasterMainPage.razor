@@ -65,7 +65,7 @@
                                 <th>День недели</th>
                                 <th>Время начала</th>
                                 <th>Время окончания</th>
-                                <th></th> <!-- Заголовок для кнопок редактирования и удаления -->
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -73,13 +73,41 @@
                             {
                                 <tr>
                                     <td>@item.Weekday.GetDescription()</td>
-                                    <td>@item.StartTime</td>
-                                    <td>@item.EndTime</td>
                                     <td>
-                                        <!-- Кнопка редактирования -->
-                                        <button class="m-1 btn btn-primary" @onclick="() => ChangeMasterSchedule(item.Id)">Редактировать</button>
-                                        <!-- Кнопка удаления -->
-                                        <button class="m-1 btn btn-danger" @onclick="() => DeleteMasterSchedule(item.Id)">Удалить</button>
+                                        @if (item.Id == selectedScheduleId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@scheduleChange.StartTime" />
+                                        }
+                                        else
+                                        {
+                                            @item.StartTime
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.Id == selectedScheduleId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@scheduleChange.EndTime" />
+                                        }
+                                        else
+                                        {
+                                            @item.EndTime
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.Id == selectedScheduleId)
+                                        {
+                                            <!-- Кнопка сохранения изменений -->
+                                            <button class="m-1 btn btn-success" @onclick="SaveMasterSchedule">Сохранить</button>
+                                            <!-- Кнопка отмены изменений -->
+                                            <button class="m-1 btn btn-secondary" @onclick="CancelEdit">Отмена</button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Кнопка редактирования -->
+                                            <button class="m-1 btn btn-primary" @onclick="() => ChangeMasterSchedule(item.Id)">Редактировать</button>
+                                            <!-- Кнопка удаления -->
+                                            <button class="m-1 btn btn-danger" @onclick="() => DeleteMasterSchedule(item.Id)">Удалить</button>
+                                        }
                                     </td>
                                 </tr>
                             }
@@ -140,6 +168,7 @@
     private MasterSchedule[]? schedule;
     private MasterWithEmail? master;
 
+    private int selectedScheduleId;
     private MasterScheduleChange scheduleChange = new();
     private MasterScheduleCreate scheduleCreate = new();
 
@@ -163,11 +192,26 @@
         }
     }
 
-    private async Task ChangeMasterSchedule(int scheduleId)
+    private void ChangeMasterSchedule(int scheduleId)
     {
-        var result = await ScheduleService.ChangeManagerMasterSchedule(scheduleId, scheduleChange);
+        selectedScheduleId = scheduleId;
+
+        // Загрузка выбранного расписания в scheduleChange
+        var selectedSchedule = schedule!.FirstOrDefault(s => s.Id == selectedScheduleId);
+        if (selectedSchedule != null)
+        {
+            scheduleChange.StartTime = selectedSchedule.StartTime;
+            scheduleChange.EndTime = selectedSchedule.EndTime;
+        }
+    }
+
+    private async Task SaveMasterSchedule()
+    {
+        var result = await ScheduleService.ChangeManagerMasterSchedule(selectedScheduleId, scheduleChange);
         if (result.State == Models.Other.ResultState.Success)
         {
+            selectedScheduleId = 0; // Сброс выбранного расписания
+            scheduleChange = new MasterScheduleChange(); // Сброс полей ввода
             await GetMasterSchedule();
         }
 
@@ -178,6 +222,13 @@
                 error = new() { Message = "Количество часов работы превышает 8 часов." };
             }
         }
+    }
+
+    private void CancelEdit()
+    {
+        error = null;
+        selectedScheduleId = 0; // Сброс выбранного расписания
+        scheduleChange = new MasterScheduleChange(); // Сброс полей ввода
     }
 
     private async Task CreateMasterSchedule()

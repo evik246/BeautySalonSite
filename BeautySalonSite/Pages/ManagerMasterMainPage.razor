@@ -72,7 +72,24 @@
                             @foreach (var item in schedule)
                             {
                                 <tr>
-                                    <td>@item.Weekday.GetDescription()</td>
+                                    <td>
+                                        @if (item.Id == selectedScheduleId)
+                                        {
+                                            <InputSelect id="WeekDay" class="form-control" @bind-Value="@scheduleChange.Weekday">
+                                                <option value="Monday">Понедельник</option>
+                                                <option value="Tuesday">Вторник</option>
+                                                <option value="Wednesday">Среда</option>
+                                                <option value="Thursday">Четверг</option>
+                                                <option value="Friday">Пятница</option>
+                                                <option value="Saturday">Суббота</option>
+                                                <option value="Sunday">Воскресенье</option>
+                                            </InputSelect>
+                                        }
+                                        else
+                                        {
+                                            @item.Weekday.GetDescription()
+                                        }
+                                    </td>
                                     <td>
                                         @if (item.Id == selectedScheduleId)
                                         {
@@ -132,6 +149,7 @@
                         </div>
                     }
                     <div class="form-group my-3">
+                        <label for="WeekDay">День недели:</label>
                         <InputSelect id="WeekDay" class="form-control" @bind-Value="@scheduleCreate.Weekday">
                             <option value="Monday">Понедельник</option>
                             <option value="Tuesday">Вторник</option>

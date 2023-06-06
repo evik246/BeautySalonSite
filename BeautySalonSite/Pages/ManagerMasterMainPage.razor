@@ -77,9 +77,9 @@
                                     <td>@item.EndTime</td>
                                     <td>
                                         <!-- Кнопка редактирования -->
-                                        <button class="btn btn-primary" @onclick="() => ChangeMasterSchedule(item.Id)">Редактировать</button>
+                                        <button class="m-1 btn btn-primary" @onclick="() => ChangeMasterSchedule(item.Id)">Редактировать</button>
                                         <!-- Кнопка удаления -->
-                                        <button class="btn btn-danger" @onclick="() => DeleteMasterSchedule(item.Id)">Удалить</button>
+                                        <button class="m-1 btn btn-danger" @onclick="() => DeleteMasterSchedule(item.Id)">Удалить</button>
                                     </td>
                                 </tr>
                             }
@@ -154,9 +154,13 @@
         }
     }
 
-    private void DeleteMasterSchedule(int scheduleId)
+    private async Task DeleteMasterSchedule(int scheduleId)
     {
-
+        var result = await ScheduleService.DeleteManagerMasterSchedule(scheduleId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            await GetMasterSchedule();
+        }
     }
 
     private async Task ChangeMasterSchedule(int scheduleId)
@@ -164,7 +168,6 @@
         var result = await ScheduleService.ChangeManagerMasterSchedule(scheduleId, scheduleChange);
         if (result.State == Models.Other.ResultState.Success)
         {
-            error = null;
             await GetMasterSchedule();
         }
 

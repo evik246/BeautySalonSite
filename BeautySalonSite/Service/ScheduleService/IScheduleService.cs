@@ -11,5 +11,6 @@ namespace BeautySalonSite.Service.ScheduleService
         Task<Result<IEnumerable<MasterSchedule>>> GetManagerMasterSchedule(int masterId);
         Task<Result<string>> ChangeManagerMasterSchedule(int scheduleId, MasterScheduleChange request);
         Task<Result<string>> CreateManagerMasterSchedule(int masterId, MasterScheduleCreate request);
+        Task<Result<string>> DeleteManagerMasterSchedule(int scheduleId);
     }
 }

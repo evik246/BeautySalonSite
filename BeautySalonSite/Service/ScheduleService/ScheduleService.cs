@@ -3,7 +3,6 @@ using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.ScheduleModels;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace BeautySalonSite.Service.ScheduleService
 {
@@ -63,6 +62,27 @@ namespace BeautySalonSite.Service.ScheduleService
             {
                 return new Result<string>(new ServerException(ex.Message));
             }
+        }
+
+        public async Task<Result<string>> DeleteManagerMasterSchedule(int scheduleId)
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"schedule/{scheduleId}/manager/account");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            var error = await response.Content.ReadFromJsonAsync<Error>();
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                if (error != null && error.Message.Contains("Master does not work at this salon"))
+                {
+                    return new Result<string>(new ConflictException());
+                }
+            }
+            return new Result<string>(new ServerException());
         }
 
         public async Task<Result<IEnumerable<MasterSchedule>>> GetManagerMasterSchedule(int masterId)

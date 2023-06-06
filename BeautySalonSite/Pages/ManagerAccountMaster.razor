@@ -36,7 +36,7 @@
                         <div class="d-flex justify-content-between mb-3">
                             <div class="col-md-4">
                                 <select class="form-select" @onchange="OnCategoryChange">
-                                    <option value="0">Все категории</option>
+                                    <option value="0">Все категории услуг</option>
                                     @foreach (var category in categories)
                                     {
                                         <option value="@category.Id">@category.Name</option>
@@ -85,6 +85,19 @@
                         </div>
                     </div>
                 }
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
+                            <a class="btn-warning link-dark page-link" @onclick="PreviousPage">Предыдущая</a>
+                        </li>
+                        <li class="page-item mx-4">
+                            <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
+                        </li>
+                        <li class="page-item @(hasNextPage ? "" : "disabled")">
+                            <a class="btn-warning link-dark page-link" @onclick="NextPage">Следующая</a>
+                        </li>
+                    </ul>
+                </nav>
             }
             else
             {
@@ -95,7 +108,8 @@
 </div>
 
 @code {
-    private Paging paging = new() { PageSize = 20 };
+    private Paging paging = new() { PageSize = 15 };
+    private bool hasNextPage;
 
     private MasterWithEmail[]? masters;
     private ServiceWithoutCategory[]? services;
@@ -111,6 +125,7 @@
     {
         await GetCategories();
         await GetMasters();
+        await HasNextPage();
     }
 
     private async Task GetCategories()
@@ -156,6 +171,35 @@
         }
     }
 
+    private async Task<MasterWithEmail[]> GetMastersArray()
+    {
+        if (ServiceId > 0)
+        {
+            var result = await EmployeeService.GetManagerMastersByService(ServiceId, paging);
+            if (result.State == ResultState.Success)
+            {
+                return result.Value!.ToArray();
+            }
+        }
+        else if (CategoryId > 0)
+        {
+            var result = await EmployeeService.GetManagerMastersByServiceCategory(CategoryId, paging);
+            if (result.State == ResultState.Success)
+            {
+                return result.Value!.ToArray();
+            }
+        }
+        else
+        {
+            var result = await EmployeeService.GetManagerMasters(paging);
+            if (result.State == ResultState.Success)
+            {
+                return result.Value!.ToArray();
+            }
+        }
+        return new MasterWithEmail[0];
+    }
+
     private async Task GetMastersByService()
     {
         var result = await EmployeeService.GetManagerMastersByService(ServiceId, paging);
@@ -177,6 +221,7 @@
     private async Task OnCategoryChange(ChangeEventArgs e)
     {
         CategoryId = int.Parse(e.Value!.ToString()!);
+        paging.PageNumber = 1;
         ServiceId = 0;
         servicesLoaded = false;
         if (CategoryId > 0)
@@ -188,11 +233,13 @@
         {
             await GetMasters();
         }
+        await HasNextPage();
     }
 
     private async Task OnServiceChange(ChangeEventArgs e)
     {
         ServiceId = int.Parse(e.Value!.ToString()!);
+        paging.PageNumber = 1;
         if (ServiceId > 0)
         {
             await GetMastersByService();
@@ -201,6 +248,7 @@
         {
             await GetMasters();
         }
+        await HasNextPage();
     }
 
     private string GetNoMastersMessage()
@@ -217,5 +265,33 @@
         {
             return "Нет доступных мастеров.";
         }
+    }
+
+    private async Task PreviousPage()
+    {
+        if (paging.PageNumber > 1)
+        {
+            paging.PageNumber--;
+            var result = await GetMastersArray();
+            masters = result.ToArray();
+        }
+        await HasNextPage();
+    }
+
+    private async Task NextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetMastersArray();
+        masters = result.ToArray();
+        await HasNextPage();
+    }
+
+    private async Task HasNextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetMastersArray();
+        paging.PageNumber--;
+
+        hasNextPage = !(result is null || !result.Any());
     }
 }

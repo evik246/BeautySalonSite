@@ -1,6 +1,8 @@
 ﻿@page "/manager/account/appointment"
 @using BeautySalonSite.Extensions;
 @using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Service.AppointmentService;
 @using Microsoft.AspNetCore.Authorization;
@@ -44,6 +46,7 @@
                 {
                     @foreach (var appointment in appointments)
                     {
+                        var tempId = appointment.Id;
                         <div class="block mx-3 card mb-3 p-2 pb-3 pe-4">
                             <div class="card-body">
                                 <div class="mb-4">
@@ -56,8 +59,17 @@
                                 <p class="card-text"><b>Услуга:</b> @appointment.Service.Name</p>
                                 <p class="card-text"><b>Цена:</b> @appointment.Price</p>
                             </div>
+                            @if (error is not null)
+                            {
+                                <div class="alert alert-danger" role="alert">
+                                    @error.Message
+                                </div>
+                            }
                             <div class="d-flex justify-content-end">
-                                <a class="btn btn-warning mt-1">Посмотреть</a>
+                                @if (tab == AppointmentTab.Incomplete)
+                                {
+                                    <button @onclick="(() => MarkAppointmentComplete(tempId))" class="btn btn-success mt-1">Отметить выполненной</button>
+                                }
                             </div>
                         </div>
                     }
@@ -95,6 +107,8 @@
     private AppointmentTab tab = AppointmentTab.Upcoming;
     private string tabName = "Предстоящие";
 
+    private Error? error;
+
     private enum AppointmentTab
     {
         Upcoming,
@@ -130,6 +144,38 @@
                 return await GetUncompleted();
         }
         return new AppointmentWithoutStatus[0];
+    }
+
+    private async Task MarkAppointmentComplete(int id)
+    {
+        var result = await AppointmentService.MarkManagerAppointmentCompleted(id);
+        if (result.State == ResultState.Success)
+        {
+            appointments = await LoadAppointments();
+            await HasNextPage();
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            if (result.Exception is NotFoundException)
+            {
+                error = new() { Message = "Записи не существует" };
+                return;
+            }
+
+            if (result.Exception is UpcomingAppointmentException)
+            {
+                error = new() { Message = "Запись еще не наступила." };
+                return;
+            }
+
+            if (result.Exception is ConflictException e)
+            {
+                error = new() { Message = e.Message };
+                return;
+            }
+            error = new() { Message = "Что-то пошло не так." };
+        }
     }
 
     private async Task<AppointmentWithoutStatus[]> GetActive()

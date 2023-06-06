@@ -12,6 +12,7 @@ namespace BeautySalonSite.Service.AppointmentService
         Task<Result<string>> MakeCustomerAppointment(CustomerAppointmentCreate request);
         Task<Result<IEnumerable<MasterAppointment>>> GetMasterAppointments(Paging paging);
         Task<Result<string>> MarkMasterAppointmentComplete(int appointmentId);
+        Task<Result<string>> MarkManagerAppointmentCompleted(int appointmentId);
         Task<Result<int>> GetMasterAppointmentCount(DateRange dateRange);
         Task<Result<decimal>> GetMasterAppointmentIncome(DateRange dateRange);
         Task<Result<IEnumerable<ManagerAppointment>>> GetManagerAppointments(Paging paging);

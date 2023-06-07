@@ -119,5 +119,21 @@ namespace BeautySalonSite.Service.EmployeeService
 
             return new Result<IEnumerable<Master>>(masters);
         }
+
+        public async Task<Result<IEnumerable<MasterAppointmentCount>>> GetTopManagerSalonMasters(int top)
+        {
+            if (top > Paging.MAX_PAGE_SIZE)
+            {
+                return new Result<IEnumerable<MasterAppointmentCount>>(new ArgumentOutOfRangeException());
+            }
+
+            var masters = await _httpClient.GetFromJsonAsync<IEnumerable<MasterAppointmentCount>>($"Employee/top/{top}/manager/account");
+
+            if (masters == null)
+            {
+                return new Result<IEnumerable<MasterAppointmentCount>>(new ServerException());
+            }
+            return new Result<IEnumerable<MasterAppointmentCount>>(masters);
+        }
     }
 }

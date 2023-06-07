@@ -1,13 +1,16 @@
 ﻿@page "/manager/account/salon"
 
+@using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.SalonModels;
 @using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
 @using BeautySalonSite.Service.ServiceService;
 @using Microsoft.AspNetCore.Authorization;
 
 @inject ISalonService SalonService
 @inject IServiceService ServiceService
+@inject IEmployeeService EmployeeService
 
 @attribute [Authorize(Roles = "Manager")]
 
@@ -89,15 +92,61 @@
                     }
                 }
             </div>
+            <div class="block m-1 my-3 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1">Самые популярные мастера в филиале салона</h4>
+                </div>
+                <EditForm class="mb-3" Model="@inputMastersTop" OnValidSubmit="@GetTopMasters">
+                    <DataAnnotationsValidator />
+                    <label class="mb-2" for="masterTop">Число записей в итоговом рейтинге:</label>
+                    <InputNumber class="form-control" id="masterTop" @bind-Value=inputMastersTop.Top />
+                    <ValidationMessage For="@(() => inputMastersTop.Top)" />
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-3 mb-4">Отобразить</button>
+                    </div>
+                </EditForm>
+                @if (topMasters != null && topMasters.Length > 0)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Описание</th>
+                                <th>Количество записей</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var master in topMasters)
+                            {
+                                <tr>
+                                    <td>@master.ToString()</td>
+                                    <td>@master.Specialization</td>
+                                    <td>@master.AppointmentsCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    if (topMasters != null && topMasters.Length == 0)
+                    {
+                        <p class="text-center">Популярных мастеров нет.</p>
+                    }
+                }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private InputServicesTop inputServicesTop = new();
+    private InputTopRating inputServicesTop = new();
+    private InputTopRating inputMastersTop = new();
 
     private SalonFull? salon;
     private ServiceAppointmentCount[]? topServices;
+    private MasterAppointmentCount[]? topMasters;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,6 +154,10 @@
         if (inputServicesTop.Top > 0)
         {
             await GetTopServices();
+        }
+        if (inputMastersTop.Top > 0)
+        {
+            await GetTopMasters();
         }
     }
 
@@ -123,6 +176,15 @@
         if (result.State == Models.Other.ResultState.Success)
         {
             topServices = result.Value!.ToArray();
+        }
+    }
+
+    private async Task GetTopMasters()
+    {
+        var result = await EmployeeService.GetTopManagerSalonMasters(inputMastersTop.Top);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            topMasters = result.Value!.ToArray();
         }
     }
 }

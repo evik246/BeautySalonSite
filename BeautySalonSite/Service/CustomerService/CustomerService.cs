@@ -38,6 +38,38 @@ namespace BeautySalonSite.Service.CustomerService
             return new Result<Customer>(customer);
         }
 
+        public async Task<Result<FullCustomer>> GetCustomerById(int customerId)
+        {
+            var customer = await _httpClient.GetFromJsonAsync<FullCustomer>($"Customer/{customerId}");
+            if (customer == null)
+            {
+                return new Result<FullCustomer>(new NotFoundException());
+            }
+            return new Result<FullCustomer>(customer);
+        }
+
+        public async Task<Result<CustomerAppointmentDate>> GetFirstCustomerAppointmentDate(int customerId)
+        {
+            var firstDate = await _httpClient.GetFromJsonAsync<CustomerAppointmentDate>($"Customer/{customerId}/appointment/date/first/manager/account");
+
+            if (firstDate == null)
+            {
+                return new Result<CustomerAppointmentDate>(new ServerException());
+            }
+            return new Result<CustomerAppointmentDate>(firstDate);
+        }
+
+        public async Task<Result<CustomerAppointmentDate>> GetLastCustomerAppointmentDate(int customerId)
+        {
+            var lastDate = await _httpClient.GetFromJsonAsync<CustomerAppointmentDate>($"Customer/{customerId}/appointment/date/last/manager/account");
+
+            if (lastDate == null)
+            {
+                return new Result<CustomerAppointmentDate>(new ServerException());
+            }
+            return new Result<CustomerAppointmentDate>(lastDate);
+        }
+
         public async Task<Result<string>> UpdateCustomer(CustomerUpdate request)
         {
             HttpResponseMessage response = await _httpClient.PutAsJsonAsync("customer/account", request);

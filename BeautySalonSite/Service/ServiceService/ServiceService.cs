@@ -1,5 +1,4 @@
-﻿using BeautySalonSite.Models.EmployeeModels;
-using BeautySalonSite.Models.ExceptionModels;
+﻿using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.ServiceModels;
 using System.Net.Http.Json;
@@ -60,6 +59,23 @@ namespace BeautySalonSite.Service.ServiceService
                 return new Result<ServiceWIthPrice>(new NotFoundException());
             }
             return new Result<ServiceWIthPrice>(service);
+        }
+
+        public async Task<Result<IEnumerable<ServiceAppointmentCount>>> GetTopManagerSalonServices(int top)
+        {
+            if (top > Paging.MAX_PAGE_SIZE)
+            {
+                return new Result<IEnumerable<ServiceAppointmentCount>>(new ArgumentOutOfRangeException());
+            }
+
+            var services = await _httpClient.GetFromJsonAsync<IEnumerable<ServiceAppointmentCount>>($"service/top/{top}/manager/account");
+
+            if (services == null)
+            {
+                return new Result<IEnumerable<ServiceAppointmentCount>>(new ServerException());
+            }
+
+            return new Result<IEnumerable<ServiceAppointmentCount>>(services);
         }
     }
 }

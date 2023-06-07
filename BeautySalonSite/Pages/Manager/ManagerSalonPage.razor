@@ -1,10 +1,13 @@
 ﻿@page "/manager/account/salon"
 
 @using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.SalonService;
+@using BeautySalonSite.Service.ServiceService;
 @using Microsoft.AspNetCore.Authorization;
 
 @inject ISalonService SalonService
+@inject IServiceService ServiceService
 
 @attribute [Authorize(Roles = "Manager")]
 
@@ -38,16 +41,71 @@
                     <p>Информация о филиале салона недоступна.</p>
                 }
             </div>
+            <div class="block m-1 my-3 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1">Самые востребованные услуги в филиале салона</h4>
+                </div>
+                <EditForm class="mb-3" Model="@inputServicesTop" OnValidSubmit="@GetTopServices">
+                    <DataAnnotationsValidator />
+                    <label class="mb-2" for="serviceTop">Число записей в итоговом рейтинге:</label>
+                    <InputNumber class="form-control" id="serviceTop" @bind-Value=inputServicesTop.Top />
+                    <ValidationMessage For="@(() => inputServicesTop.Top)" />
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-3 mb-4">Отобразить</button>
+                    </div>
+                </EditForm>
+                @if (topServices != null && topServices.Length > 0)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Цена</th>
+                                <th>Время выполнения</th>
+                                <th>Категория</th>
+                                <th>Количество записей</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var service in topServices)
+                            {
+                                <tr>
+                                    <td>@service.Name</td>
+                                    <td>@service.Price</td>
+                                    <td>@service.ExecutionTime</td>
+                                    <td>@service.Category.Name</td>
+                                    <td>@service.AppointmentsCount</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    if (topServices != null && topServices.Length == 0)
+                    {
+                        <p class="text-center">Востребованных услуг нет.</p>
+                    }
+                }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
+    private InputServicesTop inputServicesTop = new();
+
     private SalonFull? salon;
+    private ServiceAppointmentCount[]? topServices;
 
     protected override async Task OnInitializedAsync()
     {
         await GetSalon();
+        if (inputServicesTop.Top > 0)
+        {
+            await GetTopServices();
+        }
     }
 
     private async Task GetSalon()
@@ -56,6 +114,15 @@
         if (result.State == Models.Other.ResultState.Success)
         {
             salon = result.Value!;
+        }
+    }
+
+    private async Task GetTopServices()
+    {
+        var result = await ServiceService.GetTopManagerSalonServices(inputServicesTop.Top);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            topServices = result.Value!.ToArray();
         }
     }
 }

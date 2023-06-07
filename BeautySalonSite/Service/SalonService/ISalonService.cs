@@ -10,5 +10,6 @@ namespace BeautySalonSite.Service.SalonService
         Task<Result<SalonWithAddressAndCity>> GetSalonWithAddressById(int salonId);
         Task SetSalonIdInLocalStorage(int salonId);
         Task RemoveSalonIdFromLocalStorage();
+        Task<Result<SalonFull>> GetManagerSalon();
     }
 }

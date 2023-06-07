@@ -1,0 +1,61 @@
+﻿@page "/manager/account/salon"
+
+@using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Service.SalonService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject ISalonService SalonService
+
+@attribute [Authorize(Roles = "Manager")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <ManagerNavMenu></ManagerNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                <div class="mb-2 mt-2">
+                    <h4 class="pb-3 my-1">Информация о филиале салона</h4>
+                </div>
+                @if (salon != null)
+                {
+                    <div>
+                        <p>Адрес: @salon.Address</p>
+                        <p>Телефон: @salon.Phone</p>
+                        <p>Город: @salon.City.Name</p>
+                    </div>
+                }
+                else
+                {
+                    <p>Информация о филиале салона недоступна.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SalonFull? salon;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSalon();
+    }
+
+    private async Task GetSalon()
+    {
+        var result = await SalonService.GetManagerSalon();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salon = result.Value!;
+        }
+    }
+}

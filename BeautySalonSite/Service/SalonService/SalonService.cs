@@ -72,5 +72,15 @@ namespace BeautySalonSite.Service.SalonService
 
             return new Result<SalonWithAddressAndCity>(new NotFoundException());
         }
+
+        public async Task<Result<SalonFull>> GetManagerSalon()
+        {
+            var salon = await _httpClient.GetFromJsonAsync<SalonFull>("Salon/manager/account");
+            if (salon == null)
+            {
+                return new Result<SalonFull>(new NotFoundException());
+            }
+            return new Result<SalonFull>(salon);
+        }
     }
 }

@@ -7,5 +7,6 @@ namespace BeautySalonSite.Service.CustomerService
     {
         Task<Result<Customer>> GetCustomer();
         Task<Result<string>> UpdateCustomer(CustomerUpdate request);
+        Task<Result<IEnumerable<FullCustomer>>> GetAllCustomers(Paging paging);
     }
 }

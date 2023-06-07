@@ -14,6 +14,24 @@ namespace BeautySalonSite.Service.EmployeeService
             _httpClient = httpClient;
         }
 
+        public async Task<Result<IEnumerable<MasterWithEmail>>> GetAvailableMastersToChange(int appointmentId)
+        {
+            try
+            {
+                var masters = await _httpClient.GetFromJsonAsync<IEnumerable<MasterWithEmail>>($"employee/appointment/{appointmentId}/available/manager/account");
+
+                if (masters == null)
+                {
+                    return new Result<IEnumerable<MasterWithEmail>>(new ServerException());
+                }
+                return new Result<IEnumerable<MasterWithEmail>>(masters);
+            }
+            catch (Exception ex)
+            {
+                return new Result<IEnumerable<MasterWithEmail>>(new ServerException(ex.Message));
+            }
+        }
+
         public async Task<Result<MasterWithEmail>> GetManagerMasterById(int masterId)
         {
             var master = await _httpClient.GetFromJsonAsync<MasterWithEmail>($"employee/manager/account/master/{masterId}");

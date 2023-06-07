@@ -1,4 +1,5 @@
 ﻿@page "/manager/account/appointment"
+
 @using BeautySalonSite.Extensions;
 @using BeautySalonSite.Models.AppointmentModels;
 @using BeautySalonSite.Models.ErrorModels;
@@ -68,7 +69,15 @@
                             <div class="d-flex justify-content-end">
                                 @if (tab == AppointmentTab.Incomplete)
                                 {
-                                    <button @onclick="(() => MarkAppointmentComplete(tempId))" class="btn btn-success mt-1">Отметить выполненной</button>
+                                    <button @onclick="(() => MarkAppointmentComplete(tempId))" class="btn btn-success mt-1">
+                                        Отметить выполненной
+                                    </button>
+                                }
+                                @if (tab == AppointmentTab.Upcoming)
+                                {
+                                    <a href="@($"manager/account/appointment/{tempId}/change_master")" class="btn btn-warning mt-1">
+                                        Поменять мастера
+                                    </a>
                                 }
                             </div>
                         </div>

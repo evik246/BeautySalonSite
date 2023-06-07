@@ -212,5 +212,50 @@ namespace BeautySalonSite.Service.AppointmentService
                 return new Result<string>(new ServerException(ex.Message));
             }
         }
+
+        public async Task<Result<string>> ChangeMasterInAppointment(int appointmentId, int masterId)
+        {
+            try
+            {
+                HttpResponseMessage response = await _httpClient.PutAsync($"appointment/{appointmentId}/master/{masterId}/change/manager/account", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new Result<string>("Success");
+                }
+
+                var error = await response.Content.ReadFromJsonAsync<Error>();
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new Result<string>(new NotFoundException());
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    if (error != null && error.Message.Contains("Appointment has not happened yet"))
+                    {
+                        return new Result<string>(new UpcomingAppointmentException());
+                    }
+                    return new Result<string>(new ConflictException());
+                }
+                return new Result<string>(new ServerException());
+            }
+            catch (Exception ex)
+            {
+                return new Result<string>(new ServerException(ex.Message));
+            }
+        }
+
+        public async Task<Result<ManagerAppointment>> GetManagerAppointmentById(int appointmentId)
+        {
+            var master = await _httpClient.GetFromJsonAsync<ManagerAppointment>($"appointment/{appointmentId}/manager/account");
+
+            if (master == null)
+            {
+                return new Result<ManagerAppointment>(new NotFoundException());
+            }
+            return new Result<ManagerAppointment>(master);
+        }
     }
 }

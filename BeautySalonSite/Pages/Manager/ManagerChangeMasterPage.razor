@@ -1,0 +1,155 @@
+﻿@page "/manager/account/appointment/{AppointmentId:int}/change_master"
+
+@using BeautySalonSite.Models.AppointmentModels;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Service.AppointmentService;
+@using BeautySalonSite.Service.EmployeeService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IEmployeeService EmployeeService
+@inject IAppointmentService AppointmentService
+
+@attribute [Authorize(Roles = "Manager")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <ManagerNavMenu></ManagerNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="m-1">
+                <div class="block p-4 mb-3">
+                    <h4 class="my-2">Смена мастера в записи</h4>
+                    @if (appointment != null)
+                    {
+                        <div class="card-body">
+                            <div class="mb-2 mt-3">
+                                <h5 class="card-title mb-4"><b>Дата:</b> @appointment.Date.ToShortDateString()</h5>
+                                <h5 class="card-title"><b>Время:</b> @appointment.Date.ToShortTimeString()</h5>
+                            </div>
+
+                            <p class="card-text mt-4"><b>Мастер:</b> @appointment.Master.ToString()</p>
+                            <p class="card-text"><b>Клиент:</b> @appointment.Customer.Name</p>
+                            <p class="card-text"><b>Услуга:</b> @appointment.Service.Name</p>
+                            <p class="card-text"><b>Цена:</b> @appointment.Price</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-center">Не удалось загрузить запись.</p>
+                    }
+                </div>
+                <div class="py-3 text-center mb-1 mt-4">
+                    <h4>Доступные мастера</h4>
+                </div>
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                @if (availableMasters != null && availableMasters.Length > 0)
+                {
+                    @foreach (var master in availableMasters)
+                    {
+                        var tempId = master.Id;
+                        var tempMasterId = master.Id;
+                        <div class="block mx-3 mb-3 p-3 pb-3 pe-4">
+                            <div class="mb-3 d-flex justify-content-start align-content-center">
+                                <div class="me-3">
+                                    <img src="@(master.PhotoPath == null? "/img/blank-profile.jpg" : master.PhotoPath)"
+                                         class="rounded profile-photo" alt="Фотография мастера" />
+                                </div>
+                                <div>
+                                    <p>@master.ToString()</p>
+                                    @if (!string.IsNullOrEmpty(master.Specialization))
+                                    {
+                                        <p>@master.Specialization</p>
+                                    }
+                                </div>
+                            </div>
+                            <div>
+                                <p><b>Почта:</b> @master.Email</p>
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <button @onclick="(() => ChangeMaster(tempId))" class="btn btn-warning mt-1">
+                                    Заменить
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center">Нет мастеров, которыми можно было бы заменить мастера в записи.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int AppointmentId { get; set; }
+
+    private ManagerAppointment? appointment;
+
+    private MasterWithEmail[]? availableMasters;
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AppointmentId > 0)
+        {
+            await GetAppointment();
+            await GetAvailableMasters();
+        }
+    }
+
+    private async Task GetAppointment()
+    {
+        var result = await AppointmentService.GetManagerAppointmentById(AppointmentId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            appointment = result.Value!;
+        }
+    }
+
+    private async Task ChangeMaster(int selectedMasterId)
+    {
+        var result = await AppointmentService.ChangeMasterInAppointment(AppointmentId, selectedMasterId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            error = null;
+            await GetAppointment();
+            await GetAvailableMasters();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is NotFoundException)
+            {
+                error = new() { Message = "Запись не найдена" };
+            }
+        }
+    }
+
+    private async Task GetAvailableMasters()
+    {
+        var result = await EmployeeService.GetAvailableMastersToChange(AppointmentId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            availableMasters = result.Value!.ToArray();
+        }
+    }
+}

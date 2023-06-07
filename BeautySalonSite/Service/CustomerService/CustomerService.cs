@@ -17,7 +17,7 @@ namespace BeautySalonSite.Service.CustomerService
 
         public async Task<Result<IEnumerable<FullCustomer>>> GetAllCustomers(Paging paging)
         {
-            var customers = await _httpClient.GetFromJsonAsync<IEnumerable<FullCustomer>>($"Customer/manager/account?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
+            var customers = await _httpClient.GetFromJsonAsync<IEnumerable<FullCustomer>>($"customer?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}");
 
             if (customers == null)
             {

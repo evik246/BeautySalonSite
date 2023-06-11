@@ -1,4 +1,5 @@
 ﻿using BeautySalonSite.Models.EmployeeModels;
+using BeautySalonSite.Models.ErrorModels;
 using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using System.Net.Http.Json;
@@ -21,6 +22,20 @@ namespace BeautySalonSite.Service.EmployeeService
             if (response.IsSuccessStatusCode)
             {
                 return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+                if (errorResponse?.Errors != null && errorResponse.Errors.ContainsKey(""))
+                {
+                    var errorMessage = errorResponse.Errors[""][0];
+                    if (errorMessage.Equals("At least one property must be specified"))
+                    {
+                        return new Result<string>(new NoInputContentException());
+                    }
+                }
             }
 
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
@@ -58,6 +73,17 @@ namespace BeautySalonSite.Service.EmployeeService
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return new Result<string>(new NotFoundException());
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                var error = await response.Content.ReadFromJsonAsync<Error>();
+
+                if (error is not null && error.Message.Contains("schedule"))
+                {
+                    return new Result<string>(new MasterScheduleExistsException());
+                }
+                return new Result<string>(new ConflictException(error!.Message));
             }
             return new Result<string>(new ServerException());
         }

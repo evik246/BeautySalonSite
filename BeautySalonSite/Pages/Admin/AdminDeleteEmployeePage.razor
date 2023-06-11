@@ -1,5 +1,9 @@
 ﻿@page "/admin/account/employee/{EmployeeId:int}/delete"
 
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Service.EmployeeService;
 @using Microsoft.AspNetCore.Authorization;
 
@@ -12,7 +16,7 @@
 
 <div class="container">
     <div class="py-5">
-        <h2>Подтверждение удаления сотрудника</h2>
+        <h2>Удаление сотрудника</h2>
     </div>
     <div class="row">
         <div class="col-md-4 order-md-1 mb-4">
@@ -22,6 +26,45 @@
         </div>
         <div class="col-md-8 order-md-2">
             <div class="block m-1 p-4">
+                <div class="mb-3">
+                    <h4 class="mb-4">Уверены, что хотите удалить этого сотрудника?</h4>
+                </div>
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                @if (employee != null)
+                {
+                    <div>
+                        <div class="mb-3 d-flex justify-content-start align-content-center">
+                            <div class="me-3">
+                                <img src="@(employee.PhotoPath == null? "/img/blank-profile.jpg" : employee.PhotoPath)"
+                                     class="rounded profile-photo" alt="Фотография мастера" />
+                            </div>
+                            <div>
+                                <p>@employee.ToString()</p>
+                                @if (!string.IsNullOrEmpty(employee.Specialization))
+                                {
+                                    <p>@employee.Specialization</p>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <p><b>Должность:</b> @employee.Role.GetDescription()</p>
+                            <p><b>Почта:</b> @employee.Email</p>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="admin/account/employee" class="mx-2 btn btn-warning">Отмена</a>
+                        <button class="btn btn-danger mx-2" @onclick="DeleteEmployee">Подтвердить удаление</button>
+                    </div>
+                }
+                else
+                {
+                    <p>Запись не найдена.</p>
+                }
             </div>
         </div>
     </div>
@@ -30,4 +73,50 @@
 @code {
     [Parameter]
     public int EmployeeId { get; set; }
+
+    private Employee? employee;
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetEmployee();
+    }
+
+    private async Task GetEmployee()
+    {
+        var result = await EmployeeService.GetEmployeeById(EmployeeId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            employee = result.Value!;
+        }
+    }
+
+    private async Task DeleteEmployee()
+    {
+        var result = await EmployeeService.DeleteEmployee(EmployeeId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            error = null;
+            Navigation.NavigateTo("admin/account/employee");
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is MasterScheduleExistsException)
+            {
+                error = new() { Message = "У данного сотрудника есть неудаленное расписание" };
+            }
+
+            if (result.Exception is ConflictException e)
+            {
+                error = new() { Message = e.Message };
+            }
+
+            if (result.Exception is ServerException)
+            {
+                error = new() { Message = "Не удается удалить данного сотрудника" };
+            }
+        }
+    }
 }

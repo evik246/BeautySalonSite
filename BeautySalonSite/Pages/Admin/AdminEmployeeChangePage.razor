@@ -189,6 +189,10 @@
             {
                 error = new() { Message = "Почта уже занята" };
             }
+            if (result.Exception is NoInputContentException)
+            {
+                error = new() { Message = "Необходимо указать хотя бы одно значение" };
+            }
             else
             {
                 error = new() { Message = "Что-то пошло не так." };

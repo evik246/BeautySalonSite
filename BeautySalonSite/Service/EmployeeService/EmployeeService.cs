@@ -56,7 +56,19 @@ namespace BeautySalonSite.Service.EmployeeService
 
             if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
             {
-                return new Result<string>(new UsedEmailException());
+                var error = await response.Content.ReadFromJsonAsync<Error>();
+                if (error != null)
+                {
+                    if (error.Message.Contains("email"))
+                    {
+                        return new Result<string>(new UsedEmailException());
+                    }
+
+                    if (error.Message.Contains("Salon branch where the employee works is not specified"))
+                    {
+                        return new Result<string>(new EmployeeSalonException());
+                    }
+                }
             }
             return new Result<string>(new ServerException());
         }

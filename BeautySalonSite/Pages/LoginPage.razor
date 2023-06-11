@@ -69,6 +69,11 @@
                 {
                     Navigation.NavigateTo("manager/account/master", forceLoad: false);
                 }
+
+                if (result2.Value!.Equals("Admin"))
+                {
+                    Navigation.NavigateTo("admin/account/category", forceLoad: false);
+                }
             }
         }
 

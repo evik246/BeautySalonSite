@@ -1,0 +1,180 @@
+﻿@page "/admin/account/category"
+
+@using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Service.CategoryService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject ICategoryService CategoryService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                <div class="mb-4">
+                    <h4>Категории услуг</h4>
+                </div>
+                @if (categories != null)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название категории услуг</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in categories)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (category.Id == selectedCategoryId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@categoryChange.Name" />
+                                        }
+                                        else
+                                        {
+                                            @category.Name
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (category.Id == selectedCategoryId)
+                                        {
+                                            <!-- Кнопка сохранения изменений -->
+                                            <button class="m-1 btn btn-success" @onclick="SaveCategory">Сохранить</button>
+                                            <!-- Кнопка отмены изменений -->
+                                            <button class="m-1 btn btn-secondary" @onclick="CancelEdit">Отмена</button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Кнопка редактирования -->
+                                            <button class="m-1 btn btn-primary" @onclick="() => ChangeCategory(category.Id)">Редактировать</button>
+                                            <!-- Кнопка удаления -->
+                                            <button class="m-1 btn btn-danger" @onclick="() => DeleteCategory(category.Id)">Удалить</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">Категорий услуг нет.</p>
+                }
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                <EditForm Model="@categoryCreate" OnValidSubmit="@CreateCategory">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3 mt-5">
+                        <h4>Создать новую категорию услуг</h4>
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="Name">Название категории:</label>
+                        <input id="Name" class="form-control" @bind=categoryCreate.Name />
+                        <ValidationMessage For="@(() => categoryCreate.Name)" />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-1">Добавить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private Category[]? categories;
+
+    private int selectedCategoryId;
+    private CategoryInput categoryCreate = new();
+    private CategoryInput categoryChange = new();
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategories();
+    }
+
+    private async Task GetCategories()
+    {
+        var result = await CategoryService.GetAllCategories();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            categories = result.Value!.ToArray();
+        }
+    }
+
+    private async Task DeleteCategory(int categoryId)
+    {
+        var result = await CategoryService.DeleteCategory(categoryId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            await GetCategories();
+        }
+    }
+
+    private async Task CreateCategory()
+    {
+        var result = await CategoryService.CreateCategory(categoryCreate);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            await GetCategories();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private void ChangeCategory(int categoryId)
+    {
+        selectedCategoryId = categoryId;
+        var selectedCategory = categories!.FirstOrDefault(s => s.Id == selectedCategoryId);
+        if (selectedCategory != null)
+        {
+            categoryChange.Name = selectedCategory.Name;
+        }
+    }
+
+    private async Task SaveCategory()
+    {
+        var result = await CategoryService.ChangeCategory(selectedCategoryId, categoryChange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            selectedCategoryId = 0;
+            categoryChange = new();
+            await GetCategories();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private void CancelEdit()
+    {
+        error = null;
+        selectedCategoryId = 0;
+        categoryChange = new();
+    }
+}

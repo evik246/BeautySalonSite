@@ -1,0 +1,198 @@
+﻿@page "/admin/account/employee/{EmployeeId:int}/change"
+
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.SalonService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject NavigationManager Navigation
+@inject IEmployeeService EmployeeService
+@inject ISalonService SalonService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Изменить сотрудника</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Изменить сотрудника</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @if (employee != null)
+                {
+                    <div class="me-3">
+                        <img src="@(employee.PhotoPath == null? "/img/blank-profile.jpg" : employee.PhotoPath)"
+                             class="rounded profile-photo" alt="Фотография мастера" />
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center">Не удалось загрузить данные сотрудника.</p>
+                }
+
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                <EditForm Model="@employeeChange" OnValidSubmit="@ChangeEmployee">
+                    <DataAnnotationsValidator />
+
+                    <div class="form-group row mt-4">
+                        <label for="Name" class="col-sm-3 col-form-label"><b>Имя:</b></label>
+                        <div class="col-sm-8">
+                            <InputText id="Name" class="form-control" @bind-Value=employeeChange.Name />
+                            <ValidationMessage For="@(() => employeeChange.Name)" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <label for="LastName" class="col-sm-3 col-form-label"><b>Фамилия:</b></label>
+                        <div class="col-sm-8">
+                            <InputText id="LastName" class="form-control" @bind-Value=employeeChange.LastName />
+                            <ValidationMessage For="@(() => employeeChange.LastName)" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <label for="Email" class="col-sm-3 col-form-label"><b>Почта:</b></label>
+                        <div class="col-sm-8">
+                            <InputText id="Email" class="form-control" @bind-Value=employeeChange.Email />
+                            <ValidationMessage For="@(() => employeeChange.Email)" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <label for="Role" class="col-sm-3 col-form-label"><b>Должность:</b></label>
+                        <div class="col-sm-8">
+                            <select id="Role" class="form-control" @bind="@employeeChange.Role">
+                                <option value="">Выберите должность</option>
+                                @foreach (EmployeeRole role in Enum.GetValues(typeof(EmployeeRole)))
+                                {
+                                    <option value="@role">@role.GetDescription()</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => employeeChange.Role)" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <label for="SalonId" class="col-sm-3 col-form-label"><b>Филиал салона:</b></label>
+                        <div class="col-sm-8">
+                            <select id="SalonId" class="form-control" @bind="@employeeChange.SalonId">
+                                @if (salons != null)
+                                {
+                                    foreach (var salon in salons)
+                                    {
+                                        <option value="@salon.Id" selected="@IsSelected(salon)">@salon.ToString()</option>
+                                    }
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => employeeChange.SalonId)" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mt-4">
+                        <label for="Specialization" class="col-sm-3 col-form-label"><b>Специализация:</b></label>
+                        <div class="col-sm-8">
+                            <InputText id="Specialization" class="form-control" @bind-Value=employeeChange.Specialization />
+                            <ValidationMessage For="@(() => employeeChange.Specialization)" />
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-5">Подтвердить изменения</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int EmployeeId { get; set; }
+
+    private Employee? employee;
+    private EmployeeChange employeeChange = new();
+    private SalonWithAddressAndCity[]? salons;
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSalons();
+        await GetEmployee();
+        InitializeEmployeeChange();
+    }
+
+    private bool IsSelected(SalonWithAddressAndCity salon)
+    {
+        return employee != null && employee.SalonId == salon.Id;
+    }
+
+    private async Task GetSalons()
+    {
+        var result = await SalonService.GetSalonsWithAddress();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salons = result.Value!.ToArray();
+        }
+    }
+
+    private async Task GetEmployee()
+    {
+        var result = await EmployeeService.GetEmployeeById(EmployeeId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            employee = result.Value!;
+        }
+    }
+
+    private void InitializeEmployeeChange()
+    {
+        if (employee != null)
+        {
+            employeeChange.Name = employee.Name;
+            employeeChange.LastName = employee.LastName;
+            employeeChange.Email = employee.Email;
+            employeeChange.Role = employee.Role;
+            employeeChange.SalonId = employee.SalonId;
+            employeeChange.Specialization = employee.Specialization;
+        }
+    }
+
+    private async Task ChangeEmployee()
+    {
+        var result = await EmployeeService.ChangeEmployee(EmployeeId, employeeChange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            error = null;
+            Navigation.NavigateTo("admin/account/employee");
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is UsedEmailException)
+            {
+                error = new() { Message = "Почта уже занята" };
+            }
+            else
+            {
+                error = new() { Message = "Что-то пошло не так." };
+            }
+        }
+    }
+}

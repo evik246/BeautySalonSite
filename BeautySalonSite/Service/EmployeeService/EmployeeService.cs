@@ -14,6 +14,88 @@ namespace BeautySalonSite.Service.EmployeeService
             _httpClient = httpClient;
         }
 
+        public async Task<Result<string>> ChangeEmployee(int employeeId, EmployeeChange request)
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"employee/{employeeId}", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                return new Result<string>(new UsedEmailException());
+            }
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> CreateEmployee(EmployeeCreate request)
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("employee", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                return new Result<string>(new UsedEmailException());
+            }
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> DeleteEmployee(int employeeId)
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"employee/{employeeId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new Result<string>(new NotFoundException());
+            }
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<IEnumerable<Employee>>> GetAllEmployees(Paging paging, EmployeeFiltration filtration)
+        {
+            string query = $"employee?PageNumber={paging.PageNumber}&PageSize={paging.PageSize}";
+
+            if (filtration.SalonId != null)
+            {
+                query += $"&SalonId={filtration.SalonId}";
+            }
+
+            if (filtration.Role != null)
+            {
+                query += $"&Role={filtration.Role}";
+            }
+
+            var employees = await _httpClient.GetFromJsonAsync<IEnumerable<Employee>>(query);
+
+            if (employees == null)
+            {
+                return new Result<IEnumerable<Employee>>(new ServerException());
+            }
+            return new Result<IEnumerable<Employee>>(employees);
+        }
+
+        public async Task<Result<Employee>> GetEmployeeById(int employeeId)
+        {
+            var employee = await _httpClient.GetFromJsonAsync<Employee>($"employee/{employeeId}");
+
+            if (employee == null)
+            {
+                return new Result<Employee>(new NotFoundException());
+            }
+            return new Result<Employee>(employee);
+        }
+
         public async Task<Result<IEnumerable<MasterWithEmail>>> GetAvailableMastersToChange(int appointmentId)
         {
             try

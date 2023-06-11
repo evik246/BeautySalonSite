@@ -15,5 +15,10 @@ namespace BeautySalonSite.Service.EmployeeService
         Task<Result<IEnumerable<MasterWithEmail>>> GetManagerMastersByServiceCategory(int categoryId, Paging paging);
         Task<Result<IEnumerable<MasterWithEmail>>> GetAvailableMastersToChange(int appointmentId);
         Task<Result<IEnumerable<MasterAppointmentCount>>> GetTopManagerSalonMasters(int top);
+        Task<Result<IEnumerable<Employee>>> GetAllEmployees(Paging paging, EmployeeFiltration filtration);
+        Task<Result<Employee>> GetEmployeeById(int employeeId);
+        Task<Result<string>> CreateEmployee(EmployeeCreate request);
+        Task<Result<string>> ChangeEmployee(int employeeId, EmployeeChange request);
+        Task<Result<string>> DeleteEmployee(int employeeId);
     }
 }

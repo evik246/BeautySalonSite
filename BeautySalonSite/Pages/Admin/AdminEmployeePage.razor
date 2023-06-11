@@ -1,0 +1,185 @@
+﻿@page "/admin/account/employee"
+
+@using BeautySalonSite.Extensions;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.SalonService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IEmployeeService EmployeeService
+@inject ISalonService SalonService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @*Выбор филиала салона и должности сотрудника по желанию*@
+                <form @onsubmit="FilterEmployees">
+                    <div class="form-group mb-3">
+                        <label class="my-2" for="salonId">Филиал салона:</label>
+                        <select class="form-control" id="salonId" @bind="@filtration.SalonId">
+                            <option value="">Все</option>
+                            @if (salons != null)
+                            {
+                                @foreach (var salon in salons)
+                                {
+                                    <option value="@salon.Id">@salon.ToString()</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="role my-2">Должность:</label>
+                        <select class="form-control" id="role" @bind="@filtration.Role">
+                            <option value="">Все</option>
+                            @foreach (EmployeeRole role in Enum.GetValues(typeof(EmployeeRole)))
+                            {
+                                <option value="@role">@role.GetDescription()</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Фильтровать</button>
+                </form>
+            </div>
+            <div class="py-3 text-center mb-1 mt-4">
+                <h4>Сотрудники</h4>
+            </div>
+            @if (employees != null && employees.Length > 0)
+            {
+                @foreach (var employee in employees)
+                {
+                    var tempMasterId = employee.Id;
+                    <div class="block mx-3 mb-3 p-3 pb-3 pe-4">
+                        <div class="mb-3 d-flex justify-content-start align-content-center">
+                            <div class="me-3">
+                                <img src="@(employee.PhotoPath == null? "/img/blank-profile.jpg" : employee.PhotoPath)"
+                                     class="rounded profile-photo" alt="Фотография мастера" />
+                            </div>
+                            <div>
+                                <p>@employee.ToString()</p>
+                                @if (!string.IsNullOrEmpty(employee.Specialization))
+                                {
+                                    <p>@employee.Specialization</p>
+                                }
+                            </div>
+                        </div>
+                        <div>
+                            <p><b>Должность:</b> @employee.Role.GetDescription()</p>
+                            <p><b>Почта:</b> @employee.Email</p>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <a href="@($"admin/account/employee/{tempMasterId}/change")" class="btn btn-warning m-1">
+                                Изменить
+                            </a>
+                            <a href="@($"admin/account/employee/{tempMasterId}/delete")" class="btn btn-danger m-1">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                }
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
+                            <a class="btn-warning link-dark page-link" @onclick="PreviousPage">Предыдущая</a>
+                        </li>
+                        <li class="page-item mx-4">
+                            <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
+                        </li>
+                        <li class="page-item @(hasNextPage ? "" : "disabled")">
+                            <a class="btn-warning link-dark page-link" @onclick="NextPage">Следующая</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+            else
+            {
+                <p class="text-center">@GetNoEmployeesMessage()</p>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Paging paging = new() { PageSize = 15 };
+    private EmployeeFiltration filtration = new();
+    private bool hasNextPage;
+
+    private Employee[]? employees;
+    private SalonWithAddressAndCity[]? salons;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetSalons();
+        employees = await GetEmployees();
+    }
+
+    private async Task GetSalons()
+    {
+        var result = await SalonService.GetSalonsWithAddress();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salons = result.Value!.ToArray();
+        }
+    }
+
+    private async Task<Employee[]> GetEmployees()
+    {
+        var result = await EmployeeService.GetAllEmployees(paging, filtration);
+        if (result.State == ResultState.Success)
+        {
+            return result.Value!.ToArray();
+        }
+        return new Employee[0];
+    }
+
+    private async Task PreviousPage()
+    {
+        if (paging.PageNumber > 1)
+        {
+            paging.PageNumber--;
+            employees = await GetEmployees();
+        }
+        await HasNextPage();
+    }
+
+    private async Task NextPage()
+    {
+        paging.PageNumber++;
+        employees = await GetEmployees();
+        await HasNextPage();
+    }
+
+    private async Task HasNextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetEmployees();
+        paging.PageNumber--;
+
+        hasNextPage = !(result is null || !result.Any());
+    }
+
+    private string GetNoEmployeesMessage()
+    {
+        return "Нет сотрудников.";
+    }
+
+    private async Task FilterEmployees()
+    {
+        paging.PageNumber = 1;
+        employees = await GetEmployees();
+    }
+}

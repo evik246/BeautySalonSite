@@ -45,6 +45,17 @@ namespace BeautySalonSite.Service.SalonService
             return new Result<IEnumerable<SalonWithAddressAndCity>>(salons);
         }
 
+        public async Task<Result<IEnumerable<SalonFull>>> GetSalonsByCity(int cityId)
+        {
+            var salons = await _httpClient.GetFromJsonAsync<IEnumerable<SalonFull>>($"salon/city/{cityId}");
+
+            if (salons is null)
+            {
+                return new Result<IEnumerable<SalonFull>>(new ServerException());
+            }
+            return new Result<IEnumerable<SalonFull>>(salons);
+        }
+
         public async Task RemoveSalonIdFromLocalStorage()
         {
             await _localStorage.RemoveItemAsync(_storageitemName);
@@ -98,6 +109,11 @@ namespace BeautySalonSite.Service.SalonService
                 return new Result<string>(new NotFoundException());
             }
 
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                return new Result<string>(new UsedPhoneException());
+            }
+
             return new Result<string>(new ServerException());
         }
 
@@ -127,6 +143,11 @@ namespace BeautySalonSite.Service.SalonService
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return new Result<string>(new NotFoundException());
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            {
+                return new Result<string>(new UsedPhoneException());
             }
 
             return new Result<string>(new ServerException());

@@ -2,6 +2,8 @@
 
 @using BeautySalonSite.Models.CityModels;
 @using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Models.SalonModels;
 @using BeautySalonSite.Service.CityService;
 @using BeautySalonSite.Service.SalonService;
@@ -27,12 +29,12 @@
         <div class="col-md-8 order-md-2">
             <div class="block mb-4 m-1 p-4">
                 <h4>Города</h4>
-                @if (cities != null)
+                @if (cities != null && cities.Length > 0)
                 {
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Название городаа</th>
+                                <th>Название города</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -75,10 +77,10 @@
                 {
                     <p class="text-center">Не удалось загрузить данные про города.</p>
                 }
-                @if (error is not null)
+                @if (errorCity is not null)
                 {
                     <div class="alert alert-danger" role="alert">
-                        @error.Message
+                        @errorCity.Message
                     </div>
                 }
                 <EditForm Model="@cityCreate" OnValidSubmit="@CreateCity">
@@ -87,7 +89,7 @@
                         <h4>Добавить город</h4>
                     </div>
                     <div class="form-group my-3">
-                        <label for="Name">Название города:</label>
+                        <label class="my-2" for="Name">Название города:</label>
                         <input id="Name" class="form-control" @bind=cityCreate.Name />
                         <ValidationMessage For="@(() => cityCreate.Name)" />
                     </div>
@@ -96,29 +98,252 @@
                     </div>
                 </EditForm>
             </div>
+            <div class="block mb-4 m-1 p-4">
+                @if (cities != null && cities.Length > 0)
+                {
+                    <div class="d-flex justify-content-between mb-5">
+                        <div class="col-md-4">
+                            <label class="my-2">Город филиала:</label>
+                            <select class="form-select" @onchange="OnCityChange">
+                                @foreach (var city in cities)
+                                {
+                                    <option value="@city.Id">@city.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+                <h4>Филиалы салона</h4>
+                @if (salons != null && salons.Length > 0 && cities != null)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Адрес филиала</th>
+                                <th>Город филиала</th>
+                                <th>Телефон филиала</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var salon in salons)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (salon.Id == selectedSalonId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@salonChange.Address" />
+                                        }
+                                        else
+                                        {
+                                            @salon.Address
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (salon.Id == selectedSalonId)
+                                        {
+                                            <select class="form-control" @bind="@salonChange.CityId">
+                                                @foreach (var city in cities)
+                                                {
+                                                    <option value="@city.Id">@city.Name</option>
+                                                }
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            @salon.City.Name
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (salon.Id == selectedSalonId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@salonChange.Phone" />
+                                        }
+                                        else
+                                        {
+                                            @salon.Phone
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (salon.Id == selectedSalonId)
+                                        {
+                                            <!-- Кнопка сохранения изменений -->
+                                            <button class="m-1 btn btn-success" @onclick="SaveSalon">Сохранить</button>
+                                            <!-- Кнопка отмены изменений -->
+                                            <button class="m-1 btn btn-secondary" @onclick="CancelEditSalon">Отмена</button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Кнопка редактирования -->
+                                            <button class="m-1 btn btn-primary" @onclick="() => ChangeSalon(salon.Id)">Редактировать</button>
+                                            <!-- Кнопка удаления -->
+                                            <button class="m-1 btn btn-danger" @onclick="() => DeleteSalon(salon.Id)">Удалить</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">Не удалось загрузить данные про филиалы салона в выбранном городе.</p>
+                }
+                @if (errorSalon is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorSalon.Message
+                    </div>
+                }
+                @if (cities != null && cities.Length > 0)
+                {
+                    <EditForm Model="@salonCreate" OnValidSubmit="@CreateSalon">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3 mt-5">
+                            <h4>Добавить новый филиал</h4>
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="City">Город филиала:</label>
+                            <InputSelect id="City" class="form-control" @bind-Value="@selectedCityIdForSalon">
+                                @foreach (var city in cities)
+                                {
+                                    <option value="@city.Id">@city.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="Address">Адрес филиала:</label>
+                            <input id="Address" class="form-control" @bind=salonCreate.Address />
+                            <ValidationMessage For="@(() => salonCreate.Address)" />
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="Phone">Номер телефона филиала:</label>
+                            <input id="Phone" class="form-control" @bind=salonCreate.Phone />
+                            <ValidationMessage For="@(() => salonCreate.Phone)" />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-warning mt-1">Добавить</button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
         </div>
     </div>
 </div>
 
 @code {
-    private SalonWithAddressAndCity[]? salons;
+    public int CityId { get; set; }
+
+    private int selectedSalonId;
+    private int selectedCityIdForSalon;
+    private SalonFull[]? salons;
+    private SalonCreate salonCreate = new();
+    private SalonChange salonChange = new();
 
     private int selectedCityId;
     private City[]? cities;
     private CityInput cityCreate = new();
     private CityInput cityChange = new();
 
-    private Error? error;
+    private Error? errorCity;
+    private Error? errorSalon;
 
     protected override async Task OnInitializedAsync()
     {
         await GetCities();
-        await GetSalons();
+        SetDefaultCity();
+        await GetSalonsByCity();
     }
 
-    private async Task GetSalons()
+    private void SetDefaultCity()
     {
-        var result = await SalonService.GetSalonsWithAddress();
+        var city = cities?.FirstOrDefault();
+        if (city != null)
+        {
+            CityId = city.Id;
+            selectedCityIdForSalon = city.Id;
+        }
+    }
+
+    private async Task DeleteSalon(int salonId)
+    {
+        var result = await SalonService.DeleteSalon(salonId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            await GetSalonsByCity();
+        }
+    }
+
+    private void ChangeSalon(int salonId)
+    {
+        selectedSalonId = salonId;
+        var selectedSalon = salons!.FirstOrDefault(s => s.Id == selectedSalonId);
+        if (selectedSalon != null)
+        {
+            errorSalon = null;
+            salonChange.Address = selectedSalon.Address;
+            salonChange.CityId = selectedSalon.City.Id;
+            salonChange.Phone = selectedSalon.Phone;
+            selectedCityIdForSalon = selectedSalon.City.Id;
+        }
+    }
+
+    private async Task SaveSalon()
+    {
+        var result = await SalonService.UpdateSalon(selectedSalonId, salonChange);
+        if (result.State == ResultState.Success)
+        {
+            errorSalon = null;
+            selectedSalonId = 0;
+            salonChange = new();
+            await GetSalonsByCity();
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            if (result.Exception is UsedPhoneException)
+            {
+                errorSalon = new() { Message = "Номер телефона уже занят." };
+            }
+
+            if (result.Exception is NotFoundException)
+            {
+                errorSalon = new() { Message = "Филиал салона не найден." };
+            }
+
+            if (result.Exception is ServerException)
+            {
+                errorSalon = new() { Message = "Что-то пошло не так." };
+            }
+        }
+    }
+
+    private async Task CreateSalon()
+    {
+        salonCreate.CityId = selectedCityIdForSalon;
+        var result = await SalonService.CreateSalon(salonCreate);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            await GetSalonsByCity();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            if (result.Exception is UsedPhoneException)
+            {
+                errorSalon = new() { Message = "Номер телефона уже занят." };
+            }
+
+            if (result.Exception is ServerException)
+            {
+                errorSalon = new() { Message = "Что-то пошло не так." };
+            }
+        }
+    }
+
+    private async Task GetSalonsByCity()
+    {
+        var result = await SalonService.GetSalonsByCity(CityId);
         if (result.State == Models.Other.ResultState.Success)
         {
             salons = result.Value!.ToArray();
@@ -139,7 +364,7 @@
         var result = await CityService.DeleteCity(cityId);
         if (result.State == Models.Other.ResultState.Success)
         {
-            error = null;
+            errorCity = null;
             await GetCities();
         }
     }
@@ -166,7 +391,7 @@
 
         if (result.State == Models.Other.ResultState.Failure)
         {
-            error = new() { Message = "Что-то пошло не так." };
+            errorCity = new() { Message = "Что-то пошло не так." };
         }
     }
 
@@ -175,20 +400,36 @@
         var result = await CityService.CreateCity(cityCreate);
         if (result.State == Models.Other.ResultState.Success)
         {
-            error = null;
+            errorCity = null;
             await GetCities();
         }
 
         if (result.State == Models.Other.ResultState.Failure)
         {
-            error = new() { Message = "Что-то пошло не так." };
+            errorCity = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private async Task OnCityChange(ChangeEventArgs e)
+    {
+        CityId = int.Parse(e.Value!.ToString()!);
+        if (CityId > 0)
+        {
+            await GetSalonsByCity();
         }
     }
 
     private void CancelEditCity()
     {
-        error = null;
+        errorCity = null;
         selectedCityId = 0;
         cityChange = new();
+    }
+
+    private void CancelEditSalon()
+    {
+        errorSalon = null;
+        selectedSalonId = 0;
+        salonChange = new();
     }
 }

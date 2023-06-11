@@ -14,5 +14,6 @@ namespace BeautySalonSite.Service.SalonService
         Task<Result<string>> CreateSalon(SalonCreate request);
         Task<Result<string>> UpdateSalon(int salonId, SalonChange request);
         Task<Result<string>> DeleteSalon(int salonId);
+        Task<Result<IEnumerable<SalonFull>>> GetSalonsByCity(int cityId);
     }
 }

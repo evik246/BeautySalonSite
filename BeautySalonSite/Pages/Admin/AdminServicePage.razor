@@ -1,0 +1,332 @@
+﻿@page "/admin/account/service"
+
+@using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.CategoryService;
+@using BeautySalonSite.Service.ServiceService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject IServiceService ServiceService
+@inject ICategoryService CategoryService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @if (categories != null && categories.Length > 0)
+                {
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="col-md-4">
+                            <label class="my-2">Категория услуг:</label>
+                            <select class="form-select" @onchange="OnCategoryChange">
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center">Категорий услуг нет.</p>
+                }
+                <div class="mb-3 mt-5">
+                    <h4>Услуги</h4>
+                </div>
+                @if (services != null && services.Length > 0)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название услуги</th>
+                                <th>Цена услуги</th>
+                                <th>Время выполнения услуги</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var service in services)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (service.Id == selectedServiceId)
+                                        {
+                                            <input class="form-control" @bind="serviceChange.Name" />
+                                        }
+                                        else
+                                        {
+                                            @service.Name
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (service.Id == selectedServiceId)
+                                        {
+                                            <input class="form-control" @bind="serviceChange.Price" />
+                                        }
+                                        else
+                                        {
+                                            @service.Price.ToString("F2")
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (service.Id == selectedServiceId)
+                                        {
+                                            <input class="form-control" @bind="serviceChange.ExecutionTime" />
+                                        }
+                                        else
+                                        {
+                                            @service.ExecutionTime.ToString("hh\\:mm")
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (service.Id == selectedServiceId)
+                                        {
+                                            <!-- Кнопка сохранения изменений -->
+                                            <button class="m-1 btn btn-success" @onclick="SaveService">Сохранить</button>
+                                            <!-- Кнопка отмены изменений -->
+                                            <button class="m-1 btn btn-secondary" @onclick="CancelEdit">Отмена</button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Кнопка редактирования -->
+                                            <button class="m-1 btn btn-primary" @onclick="() => ChangeService(service.Id)">Редактировать</button>
+                                            <!-- Кнопка удаления -->
+                                            <button class="m-1 btn btn-danger" @onclick="() => DeleteService(service.Id)">Удалить</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(paging.PageNumber == 1 ? "disabled" : "")">
+                                <a class="btn-warning link-dark page-link" @onclick="PreviousPage">Предыдущая</a>
+                            </li>
+                            <li class="page-item mx-4">
+                                <a class="bg-warning border-warning text-black page-link">@paging.PageNumber</a>
+                            </li>
+                            <li class="page-item @(hasNextPage ? "" : "disabled")">
+                                <a class="btn-warning link-dark page-link" @onclick="NextPage">Следующая</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+                else
+                {
+                    <p class="text-center">Нет услуг.</p>
+                }
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                @if (categories != null && categories.Length > 0)
+                {
+                    <EditForm Model="@serviceCreate" OnValidSubmit="@CreateService">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3 mt-5">
+                            <h4>Создать новую услугу</h4>
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="Category">Категория услуги:</label>
+                            <InputSelect id="Category" class="form-control" @bind-Value="@selectedCategoryId">
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="Name">Название услуги:</label>
+                            <input id="Name" class="form-control" @bind=serviceCreate.Name />
+                            <ValidationMessage For="@(() => serviceCreate.Name)" />
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="Price">Цена услуги:</label>
+                            <input id="Price" class="form-control" @bind=serviceCreate.Price />
+                            <ValidationMessage For="@(() => serviceCreate.Price)" />
+                        </div>
+                        <div class="form-group my-3">
+                            <label class="my-2" for="ExecutionTime">Время выполнения услуги:</label>
+                            <input id="ExecutionTime" class="form-control" @bind=serviceCreate.ExecutionTime />
+                            <ValidationMessage For="@(() => serviceCreate.ExecutionTime)" />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-warning mt-1">Добавить</button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public int CategoryId { get; set; }
+
+    private Paging paging = new() { PageSize = 15 };
+    private bool hasNextPage;
+
+    private Category[]? categories;
+    private ServiceWithoutCategory[]? services;
+
+    private int selectedServiceId;
+    private int selectedCategoryId;
+
+    private ServiceCreate serviceCreate = new();
+    private ServiceChange serviceChange = new();
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategories();
+        SetDefaultCategory();
+        services = await GetServicesByCategory();
+        await HasNextPage();
+    }
+
+    private async Task DeleteService(int serviceId)
+    {
+        var result = await ServiceService.DeleteService(serviceId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            services = await GetServicesByCategory();
+        }
+    }
+
+    private async Task CreateService()
+    {
+        serviceCreate.CategoryId = selectedCategoryId;
+        var result = await ServiceService.CreateService(serviceCreate);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            services = await GetServicesByCategory();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private void ChangeService(int serviceId)
+    {
+        selectedServiceId = serviceId;
+        var selectedService = services!.FirstOrDefault(s => s.Id == selectedServiceId);
+        if (selectedService != null)
+        {
+            error = null;
+            serviceChange.Name = selectedService.Name;
+            serviceChange.Price = selectedService.Price;
+            serviceChange.ExecutionTime = selectedService.ExecutionTime;
+        }
+    }
+
+    private async Task SaveService()
+    {
+        var result = await ServiceService.UpdateService(selectedServiceId, serviceChange);
+        if (result.State == ResultState.Success)
+        {
+            error = null;
+            selectedServiceId = 0;
+            serviceChange = new();
+            services = await GetServicesByCategory();
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private void CancelEdit()
+    {
+        error = null;
+        selectedServiceId = 0;
+        serviceChange = new();
+    }
+
+    private void SetDefaultCategory()
+    {
+        var category = categories?.FirstOrDefault();
+        if (category != null)
+        {
+            CategoryId = category.Id;
+            selectedCategoryId = category.Id;
+        }
+    }
+
+    private async Task GetCategories()
+    {
+        var result = await CategoryService.GetAllCategories();
+        if (result.State == ResultState.Success)
+        {
+            categories = result.Value!.ToArray();
+        }
+    }
+
+    private async Task<ServiceWithoutCategory[]> GetServicesByCategory()
+    {
+        var result = await ServiceService.GetAllServicesByCategory(CategoryId, paging);
+        if (result.State == ResultState.Success)
+        {
+            return result.Value!.ToArray();
+        }
+        return new ServiceWithoutCategory[0];
+    }
+
+    private async Task OnCategoryChange(ChangeEventArgs e)
+    {
+        CategoryId = int.Parse(e.Value!.ToString()!);
+        paging.PageNumber = 1;
+        if (CategoryId > 0)
+        {
+            services = await GetServicesByCategory();
+        }
+        await HasNextPage();
+    }
+
+    private async Task PreviousPage()
+    {
+        if (paging.PageNumber > 1)
+        {
+            paging.PageNumber--;
+            services = await GetServicesByCategory();
+        }
+        await HasNextPage();
+    }
+
+    private async Task NextPage()
+    {
+        paging.PageNumber++;
+        services = await GetServicesByCategory();
+        await HasNextPage();
+    }
+
+    private async Task HasNextPage()
+    {
+        paging.PageNumber++;
+        var result = await GetServicesByCategory();
+        paging.PageNumber--;
+
+        hasNextPage = !(result is null || !result.Any());
+    }
+}

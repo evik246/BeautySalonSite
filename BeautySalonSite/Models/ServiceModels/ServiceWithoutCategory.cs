@@ -6,7 +6,7 @@
 
         public string Name { get; set; } = string.Empty;
 
-        public double Price { get; set; }
+        public decimal Price { get; set; }
 
         public TimeSpan ExecutionTime { get; set; }
     }

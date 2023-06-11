@@ -12,6 +12,7 @@ using BeautySalonSite.Service.AppointmentService;
 using BeautySalonSite.Service.ServiceService;
 using BeautySalonSite.Service.EmployeeService;
 using BeautySalonSite.Service.ScheduleService;
+using BeautySalonSite.Service.CityService;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -27,6 +28,7 @@ builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddBlazoredLocalStorage();
 

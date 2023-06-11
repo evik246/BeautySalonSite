@@ -1,4 +1,5 @@
-﻿using BeautySalonSite.Models.ExceptionModels;
+﻿using BeautySalonSite.Models.ErrorModels;
+using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.SalonModels;
 using Blazored.LocalStorage;
@@ -81,6 +82,71 @@ namespace BeautySalonSite.Service.SalonService
                 return new Result<SalonFull>(new NotFoundException());
             }
             return new Result<SalonFull>(salon);
+        }
+
+        public async Task<Result<string>> CreateSalon(SalonCreate request)
+        {
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("salon", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new Result<string>(new NotFoundException());
+            }
+
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> UpdateSalon(int salonId, SalonChange request)
+        {
+            HttpResponseMessage response = await _httpClient.PutAsJsonAsync($"salon/{salonId}", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+                if (errorResponse?.Errors != null && errorResponse.Errors.ContainsKey(""))
+                {
+                    var errorMessage = errorResponse.Errors[""][0];
+                    if (errorMessage.Equals("At least one property must be specified"))
+                    {
+                        return new Result<string>(new NoInputContentException());
+                    }
+                }
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new Result<string>(new NotFoundException());
+            }
+
+            return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<string>> DeleteSalon(int salonId)
+        {
+            HttpResponseMessage response = await _httpClient.DeleteAsync($"salon/{salonId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return new Result<string>("Success");
+            }
+
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return new Result<string>(new NotFoundException());
+            }
+
+            return new Result<string>(new ServerException());
         }
     }
 }

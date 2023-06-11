@@ -1,0 +1,194 @@
+﻿@page "/admin/account/salon"
+
+@using BeautySalonSite.Models.CityModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Service.CityService;
+@using BeautySalonSite.Service.SalonService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject ISalonService SalonService
+@inject ICityService CityService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Личный кабинет</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Личный кабинет</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block mb-4 m-1 p-4">
+                <h4>Города</h4>
+                @if (cities != null)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название городаа</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var city in cities)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (city.Id == selectedCityId)
+                                        {
+                                            <input type="text" class="form-control" @bind="@cityChange.Name" />
+                                        }
+                                        else
+                                        {
+                                            @city.Name
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (city.Id == selectedCityId)
+                                        {
+                                            <!-- Кнопка сохранения изменений -->
+                                            <button class="m-1 btn btn-success" @onclick="SaveCity">Сохранить</button>
+                                            <!-- Кнопка отмены изменений -->
+                                            <button class="m-1 btn btn-secondary" @onclick="CancelEditCity">Отмена</button>
+                                        }
+                                        else
+                                        {
+                                            <!-- Кнопка редактирования -->
+                                            <button class="m-1 btn btn-primary" @onclick="() => ChangeCity(city.Id)">Редактировать</button>
+                                            <!-- Кнопка удаления -->
+                                            <button class="m-1 btn btn-danger" @onclick="() => DeleteCity(city.Id)">Удалить</button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-center">Не удалось загрузить данные про города.</p>
+                }
+                @if (error is not null)
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @error.Message
+                    </div>
+                }
+                <EditForm Model="@cityCreate" OnValidSubmit="@CreateCity">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3 mt-5">
+                        <h4>Добавить город</h4>
+                    </div>
+                    <div class="form-group my-3">
+                        <label for="Name">Название города:</label>
+                        <input id="Name" class="form-control" @bind=cityCreate.Name />
+                        <ValidationMessage For="@(() => cityCreate.Name)" />
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-warning mt-1">Добавить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private SalonWithAddressAndCity[]? salons;
+
+    private int selectedCityId;
+    private City[]? cities;
+    private CityInput cityCreate = new();
+    private CityInput cityChange = new();
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCities();
+        await GetSalons();
+    }
+
+    private async Task GetSalons()
+    {
+        var result = await SalonService.GetSalonsWithAddress();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salons = result.Value!.ToArray();
+        }
+    }
+
+    private async Task GetCities()
+    {
+        var result = await CityService.GetAllCities();
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            cities = result.Value!.ToArray();
+        }
+    }
+
+    private async Task DeleteCity(int cityId)
+    {
+        var result = await CityService.DeleteCity(cityId);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            error = null;
+            await GetCities();
+        }
+    }
+
+    private void ChangeCity(int cityId)
+    {
+        selectedCityId = cityId;
+        var selectedCity = cities!.FirstOrDefault(s => s.Id == selectedCityId);
+        if (selectedCity != null)
+        {
+            cityChange.Name = selectedCity.Name;
+        }
+    }
+
+    private async Task SaveCity()
+    {
+        var result = await CityService.UpdateCity(selectedCityId, cityChange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            selectedCityId = 0;
+            cityChange = new();
+            await GetCities();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private async Task CreateCity()
+    {
+        var result = await CityService.CreateCity(cityCreate);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            error = null;
+            await GetCities();
+        }
+
+        if (result.State == Models.Other.ResultState.Failure)
+        {
+            error = new() { Message = "Что-то пошло не так." };
+        }
+    }
+
+    private void CancelEditCity()
+    {
+        error = null;
+        selectedCityId = 0;
+        cityChange = new();
+    }
+}

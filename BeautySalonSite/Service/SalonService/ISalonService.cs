@@ -1,5 +1,6 @@
 ﻿using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.SalonModels;
+using BeautySalonSite.Models.ScheduleModels;
 
 namespace BeautySalonSite.Service.SalonService
 {
@@ -15,5 +16,7 @@ namespace BeautySalonSite.Service.SalonService
         Task<Result<string>> UpdateSalon(int salonId, SalonChange request);
         Task<Result<string>> DeleteSalon(int salonId);
         Task<Result<IEnumerable<SalonFull>>> GetSalonsByCity(int cityId);
+        Task<Result<decimal>> GetManagerSalonIncome(DateRange dateRange);
+        Task<Result<decimal>> GetSalonIncome(int salonId, DateRange dateRange);
     }
 }

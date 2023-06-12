@@ -2,6 +2,7 @@
 using BeautySalonSite.Models.ExceptionModels;
 using BeautySalonSite.Models.Other;
 using BeautySalonSite.Models.SalonModels;
+using BeautySalonSite.Models.ScheduleModels;
 using Blazored.LocalStorage;
 using System.Net.Http.Json;
 
@@ -168,6 +169,20 @@ namespace BeautySalonSite.Service.SalonService
             }
 
             return new Result<string>(new ServerException());
+        }
+
+        public async Task<Result<decimal>> GetManagerSalonIncome(DateRange dateRange)
+        {
+            var income = await _httpClient.GetFromJsonAsync<decimal>($"salon/manager/account/income?StartDate={dateRange.StartDate:yyyy-MM-dd}&EndDate={dateRange.EndDate:yyyy-MM-dd}");
+
+            return new Result<decimal>(income);
+        }
+
+        public async Task<Result<decimal>> GetSalonIncome(int salonId, DateRange dateRange)
+        {
+            var income = await _httpClient.GetFromJsonAsync<decimal>($"salon/{salonId}/income?StartDate={dateRange.StartDate:yyyy-MM-dd}&EndDate={dateRange.EndDate:yyyy-MM-dd}");
+
+            return new Result<decimal>(income);
         }
     }
 }

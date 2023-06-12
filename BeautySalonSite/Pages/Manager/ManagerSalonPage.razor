@@ -2,6 +2,7 @@
 
 @using BeautySalonSite.Models.EmployeeModels;
 @using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Models.ScheduleModels;
 @using BeautySalonSite.Models.ServiceModels;
 @using BeautySalonSite.Service.EmployeeService;
 @using BeautySalonSite.Service.SalonService;
@@ -37,6 +38,31 @@
                         <p>Адрес: @salon.Address</p>
                         <p>Телефон: @salon.Phone</p>
                         <p>Город: @salon.City.Name</p>
+                        <div class="mt-4">
+                            <h4 class="pb-3 my-1">Доход салона</h4>
+                            <EditForm Model="@dateRange" OnValidSubmit="@GetSalonIncome">
+                                <DataAnnotationsValidator />
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <label class="form-label">Начальная дата:</label>
+                                        <InputDate class="form-control" @bind-Value="dateRange.StartDate" />
+                                        <ValidationMessage For="@(() => dateRange.StartDate)" />
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label">Конечная дата:</label>
+                                        <InputDate class="form-control" @bind-Value="dateRange.EndDate" />
+                                        <ValidationMessage For="@(() => dateRange.EndDate)" />
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary my-3">Показать</button>
+                                </div>
+                            </EditForm>
+                            @if (salonIncome.HasValue)
+                            {
+                                <p>Доход салона за выбранный период: @salonIncome</p>
+                            }
+                        </div>
                     </div>
                 }
                 else
@@ -148,9 +174,13 @@
     private ServiceAppointmentCount[]? topServices;
     private MasterAppointmentCount[]? topMasters;
 
+    private DateRange dateRange = new();
+    private decimal? salonIncome;
+
     protected override async Task OnInitializedAsync()
     {
         await GetSalon();
+        await GetSalonIncome();
         if (inputServicesTop.Top > 0)
         {
             await GetTopServices();
@@ -158,6 +188,15 @@
         if (inputMastersTop.Top > 0)
         {
             await GetTopMasters();
+        }
+    }
+
+    private async Task GetSalonIncome()
+    {
+        var result = await SalonService.GetManagerSalonIncome(dateRange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salonIncome = result.Value!;
         }
     }
 

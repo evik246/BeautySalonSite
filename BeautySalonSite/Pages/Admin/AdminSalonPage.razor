@@ -5,6 +5,7 @@
 @using BeautySalonSite.Models.ExceptionModels;
 @using BeautySalonSite.Models.Other;
 @using BeautySalonSite.Models.SalonModels;
+@using BeautySalonSite.Models.ScheduleModels;
 @using BeautySalonSite.Service.CityService;
 @using BeautySalonSite.Service.SalonService;
 @using Microsoft.AspNetCore.Authorization;
@@ -113,6 +114,28 @@
                         </div>
                     </div>
                 }
+                <div class="mt-4">
+                    <h4 class="pb-3 my-1">Доход салона</h4>
+                    <EditForm Model="@dateRange" OnValidSubmit="@GetSalonIncome">
+                        <DataAnnotationsValidator />
+                        <div class="row">
+                            <div class="col-md-5">
+                                <label class="form-label">Начальная дата:</label>
+                                <InputDate class="form-control" @bind-Value="dateRange.StartDate" />
+                                <ValidationMessage For="@(() => dateRange.StartDate)" />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">Конечная дата:</label>
+                                <InputDate class="form-control" @bind-Value="dateRange.EndDate" />
+                                <ValidationMessage For="@(() => dateRange.EndDate)" />
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary my-3">Показать</button>
+                        </div>
+                    </EditForm>
+                </div>
+
                 <h4>Филиалы салона</h4>
                 @if (salons != null && salons.Length > 0 && cities != null)
                 {
@@ -122,6 +145,7 @@
                                 <th>Адрес филиала</th>
                                 <th>Город филиала</th>
                                 <th>Телефон филиала</th>
+                                <th>Доход филиала</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -162,6 +186,17 @@
                                         else
                                         {
                                             @salon.Phone
+                                        }
+                                    </td>
+                                    <td>
+                                        @*Доход филиала*@
+                                        @if (salonIncome.HasValue)
+                                        {
+                                            @salonIncome
+                                        }
+                                        else
+                                        {
+                                            <p>Нет информации</p>
                                         }
                                     </td>
                                     <td>
@@ -248,11 +283,23 @@
     private Error? errorCity;
     private Error? errorSalon;
 
+    private DateRange dateRange = new();
+    private decimal? salonIncome;
+
     protected override async Task OnInitializedAsync()
     {
         await GetCities();
         SetDefaultCity();
         await GetSalonsByCity();
+    }
+
+    private async Task GetSalonIncome()
+    {
+        var result = await SalonService.GetSalonIncome(selectedSalonId, dateRange);
+        if (result.State == Models.Other.ResultState.Success)
+        {
+            salonIncome = result.Value!;
+        }
     }
 
     private void SetDefaultCity()
@@ -274,7 +321,7 @@
         }
     }
 
-    private void ChangeSalon(int salonId)
+    private async Task ChangeSalon(int salonId)
     {
         selectedSalonId = salonId;
         var selectedSalon = salons!.FirstOrDefault(s => s.Id == selectedSalonId);
@@ -285,6 +332,9 @@
             salonChange.CityId = selectedSalon.City.Id;
             salonChange.Phone = selectedSalon.Phone;
             selectedCityIdForSalon = selectedSalon.City.Id;
+
+            // Получить доход филиала
+            await GetSalonIncome();
         }
     }
 
@@ -297,6 +347,8 @@
             selectedSalonId = 0;
             salonChange = new();
             await GetSalonsByCity();
+            // Обновить доход филиала
+            await GetSalonIncome();
         }
 
         if (result.State == ResultState.Failure)

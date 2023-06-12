@@ -255,5 +255,34 @@ namespace BeautySalonSite.Service.EmployeeService
             }
             return new Result<IEnumerable<MasterAppointmentCount>>(masters);
         }
+
+        public async Task<Result<string>> AddMasterService(int masterId, int serviceId)
+        {
+            try
+            {
+                HttpResponseMessage response = await _httpClient.PostAsync($"employee/master/{masterId}/add/service/{serviceId}", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new Result<string>("Success");
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new Result<string>(new NotFoundException());
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    return new Result<string>(new ConflictException());
+                }
+
+                return new Result<string>(new ServerException());
+            }
+            catch (Exception e)
+            {
+                return new Result<string>(new ServerException(e.Message));
+            }
+        }
     }
 }

@@ -139,7 +139,7 @@
             {
                 @foreach (var employee in employees)
                 {
-                    var tempMasterId = employee.Id;
+                    var tempEmployeeId = employee.Id;
                     <div class="block mx-3 mb-3 p-3 pb-3 pe-4">
                         <div class="mb-3 d-flex justify-content-start align-content-center">
                             <div class="me-3">
@@ -159,10 +159,16 @@
                             <p><b>Почта:</b> @employee.Email</p>
                         </div>
                         <div class="d-flex justify-content-end">
-                            <a href="@($"admin/account/employee/{tempMasterId}/change")" class="btn btn-warning m-1">
+                            @if (employee.Role == EmployeeRole.Master)
+                            {
+                                <a href="@($"admin/account/master/{tempEmployeeId}/service")" class="btn btn-warning m-1">
+                                    Услуги
+                                </a>
+                            }
+                            <a href="@($"admin/account/employee/{tempEmployeeId}/change")" class="btn btn-warning m-1">
                                 Изменить
                             </a>
-                            <a href="@($"admin/account/employee/{tempMasterId}/delete")" class="btn btn-danger m-1">
+                            <a href="@($"admin/account/employee/{tempEmployeeId}/delete")" class="btn btn-danger m-1">
                                 Удалить
                             </a>
                         </div>

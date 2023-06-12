@@ -1,0 +1,268 @@
+﻿@page "/admin/account/master/{MasterId:int}/service"
+
+@using BeautySalonSite.Models.CategoryModels;
+@using BeautySalonSite.Models.EmployeeModels;
+@using BeautySalonSite.Models.ErrorModels;
+@using BeautySalonSite.Models.ExceptionModels;
+@using BeautySalonSite.Models.Other;
+@using BeautySalonSite.Models.ServiceModels;
+@using BeautySalonSite.Service.CategoryService;
+@using BeautySalonSite.Service.EmployeeService;
+@using BeautySalonSite.Service.ServiceService;
+@using Microsoft.AspNetCore.Authorization;
+
+@inject ICategoryService CategoryService
+@inject IServiceService ServiceService
+@inject IEmployeeService EmployeeService
+
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Услуги мастера</PageTitle>
+
+<div class="container">
+    <div class="py-5">
+        <h2>Услуги мастера</h2>
+    </div>
+    <div class="row">
+        <div class="col-md-4 order-md-1 mb-4">
+            <div class="block m-1 p-4">
+                <AdminNavMenu></AdminNavMenu>
+            </div>
+        </div>
+        <div class="col-md-8 order-md-2">
+            <div class="block m-1 p-4">
+                @if (categories != null && categories.Length > 0)
+                {
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="col-md-4">
+                            <label class="my-2">Категория услуг:</label>
+                            <select class="form-select" @onchange="OnCategoryChange">
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-center">Категорий услуг нет.</p>
+                }
+                <div class="mb-3 mt-5">
+                    <h4>Все услуги мастера</h4>
+                </div>
+                @if (services != null && services.Length > 0)
+                {
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Название услуги</th>
+                                <th>Цена услуги</th>
+                                <th>Время выполнения услуги</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var service in services)
+                            {
+                                <tr>
+                                    <td>
+                                        @service.Name
+                                    </td>
+                                    <td>
+                                        @service.Price.ToString("F2")
+                                    </td>
+                                    <td>
+                                        @service.ExecutionTime.ToString("hh\\:mm")
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+            @if (availableServices != null && availableServices.Length > 0)
+            {
+                <div class="block my-3 m-1 p-4">
+                    @if (error is not null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @error.Message
+                        </div>
+                    }
+                    @if (categories != null && categories.Length > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="col-md-4">
+                                <label class="my-2">Категория услуг:</label>
+                                <select class="form-select" @onchange="OnCategoryChange2">
+                                    @foreach (var category in categories)
+                                    {
+                                        <option value="@category.Id">@category.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <h4>Добавления услуги мастеру</h4>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Выберите услугу:</label>
+                        <select class="form-select" @onchange="OnServiceChange">
+                            @foreach (var service in availableServices)
+                            {
+                                <option value="@service.Id">@service.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" @onclick="AddServiceToMaster">Добавить услугу</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private Paging paging = new() { PageSize = 40 };
+
+    [Parameter]
+    public int MasterId { get; set; }
+
+    public int CategoryId { get; set; }
+
+    private ServiceWithoutCategory[]? services;
+    private Category[]? categories;
+    private Master? master;
+
+    private ServiceWithoutCategory[]? availableServices;
+    private int selectedServiceId;
+
+    private int selectedCategoryId;
+
+    private Error? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMaster();
+        await GetCategories();
+        SetDefaultCategory();
+        SetDefaultCategory2();
+        await GetServices();
+        await GetAvailableServices();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await GetMaster();
+        await GetCategories();
+        SetDefaultCategory();
+        SetDefaultCategory2();
+        await GetServices();
+        await GetAvailableServices();
+    }
+
+    private void OnServiceChange(ChangeEventArgs e)
+    {
+        selectedServiceId = int.Parse(e.Value!.ToString()!);
+    }
+
+    private async Task GetAvailableServices()
+    {
+        var resultServices = await ServiceService.GetAllServicesByCategory(selectedCategoryId, paging);
+        if (resultServices.State == ResultState.Success)
+        {
+            availableServices = resultServices.Value!.ToArray();
+            if (availableServices.Length > 0)
+            {
+                selectedServiceId = availableServices[0].Id;
+            }
+        }
+    }
+
+    private async Task AddServiceToMaster()
+    {
+        var result = await EmployeeService.AddMasterService(MasterId, selectedServiceId);
+        if (result.State == ResultState.Success)
+        {
+            error = null;
+            await GetServices();
+        }
+
+        if (result.State == ResultState.Failure)
+        {
+            if (result.Exception is NotFoundException)
+            {
+                error = new() { Message = "Услуга не найдена." };
+            }
+
+            if (result.Exception is ConflictException)
+            {
+                error = new() { Message = "Эта услуга уже есть у мастера." };
+            }
+        }
+    }
+
+    private async void SetDefaultCategory()
+    {
+        if (categories != null && categories.Length > 0 && CategoryId <= 0)
+        {
+            CategoryId = categories.First().Id;
+            await GetServices();
+        }
+    }
+
+    private async void SetDefaultCategory2()
+    {
+        if (categories != null && categories.Length > 0 && selectedCategoryId <= 0)
+        {
+            selectedCategoryId = categories.First().Id;
+            await GetAvailableServices();
+        }
+    }
+
+    private async Task OnCategoryChange(ChangeEventArgs e)
+    {
+        CategoryId = int.Parse(e.Value!.ToString()!);
+        if (CategoryId > 0)
+        {
+            await GetServices();
+        }
+    }
+
+    private async Task OnCategoryChange2(ChangeEventArgs e)
+    {
+        selectedCategoryId = int.Parse(e.Value!.ToString()!);
+        if (selectedCategoryId > 0)
+        {
+            await GetAvailableServices();
+        }
+    }
+
+    private async Task GetServices()
+    {
+        var resultServices = await ServiceService.GetMasterServicesByCategory(MasterId, CategoryId, paging);
+        if (resultServices.State == ResultState.Success)
+        {
+            services = resultServices.Value!.ToArray();
+        }
+    }
+
+    private async Task GetCategories()
+    {
+        var resultCategories = await CategoryService.GetMasterCategories(MasterId);
+        if (resultCategories.State == ResultState.Success)
+        {
+            categories = resultCategories.Value!.ToArray();
+        }
+    }
+
+    private async Task GetMaster()
+    {
+        var result = await EmployeeService.GetMasterById(MasterId);
+        if (result.State == ResultState.Success)
+        {
+            master = result.Value!;
+        }
+    }
+}

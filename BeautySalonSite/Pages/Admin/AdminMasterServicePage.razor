@@ -60,6 +60,7 @@
                                 <th>Название услуги</th>
                                 <th>Цена услуги</th>
                                 <th>Время выполнения услуги</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,6 +75,9 @@
                                     </td>
                                     <td>
                                         @service.ExecutionTime.ToString("hh\\:mm")
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" @onclick="() => RemoveMasterService(service.Id)">Удалить</button>
                                     </td>
                                 </tr>
                             }
@@ -200,6 +204,16 @@
             {
                 error = new() { Message = "Эта услуга уже есть у мастера." };
             }
+        }
+    }
+
+    private async Task RemoveMasterService(int serviceId)
+    {
+        var result = await EmployeeService.RemoveMasterService(MasterId, serviceId);
+        if (result.State == ResultState.Success)
+        {
+            error = null;
+            await GetServices();
         }
     }
 

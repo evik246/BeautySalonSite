@@ -21,5 +21,6 @@ namespace BeautySalonSite.Service.EmployeeService
         Task<Result<string>> ChangeEmployee(int employeeId, EmployeeChange request);
         Task<Result<string>> DeleteEmployee(int employeeId);
         Task<Result<string>> AddMasterService(int masterId, int serviceId);
+        Task<Result<string>> RemoveMasterService(int masterId, int serviceId);
     }
 }

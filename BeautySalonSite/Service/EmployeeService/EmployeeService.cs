@@ -284,5 +284,34 @@ namespace BeautySalonSite.Service.EmployeeService
                 return new Result<string>(new ServerException(e.Message));
             }
         }
+
+        public async Task<Result<string>> RemoveMasterService(int masterId, int serviceId)
+        {
+            try
+            {
+                HttpResponseMessage response = await _httpClient.DeleteAsync($"employee/master/{masterId}/remove/service/{serviceId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new Result<string>("Success");
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return new Result<string>(new NotFoundException());
+                }
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    return new Result<string>(new ConflictException());
+                }
+
+                return new Result<string>(new ServerException());
+            }
+            catch (Exception e)
+            {
+                return new Result<string>(new ServerException(e.Message));
+            }
+        }
     }
 }
